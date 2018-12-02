@@ -1,2 +1,2 @@
 # graphql-dynamic
-untype dynamic graphql layer
+dynamic schemaless graphql

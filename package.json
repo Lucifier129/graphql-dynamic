@@ -1,9 +1,10 @@
 {
   "name": "graphql-dynamic",
-  "version": "0.0.0",
-  "description": "untype dynamic graphql layer",
+  "version": "0.0.1",
+  "description": "dynamic schemaless graphql",
   "main": "index.js",
   "scripts": {
+    "graphql-anywhere": "babel graphql-anywhere/lib --out-dir graphql-anywhere/dist",
     "test": "jest"
   },
   "repository": {
@@ -21,10 +22,14 @@
     "graphql": "^14.0.2",
     "graphql-anywhere": "^4.1.23",
     "graphql-tag": "^2.10.0",
+    "koa-compose": "^4.1.0",
     "node-fetch": "^2.3.0",
     "querystring": "^0.2.0"
   },
   "devDependencies": {
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.6",
+    "@babel/preset-env": "^7.1.6",
     "jest": "^23.6.0"
   }
 }
