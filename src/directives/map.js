@@ -2,34 +2,36 @@ const vm = require('vm')
 const isPlainObject = require('is-plain-object')
 
 module.exports = (ctx, next) => {
-	let handleFilter = params => {
-		let result = ctx.result
+  let handleMap = params => {
+    let result = ctx.result
 
-		if (result == null) {
-			return
-		}
+    if (result == null) {
+      return
+    }
 
-		if (typeof params.to !== 'string') {
-			ctx.error(`\`to\` in @filter should be a string, instead of ${params.to}`)
-			return
-		}
+    if (typeof params.to !== 'string') {
+      ctx.error(`\`to\` in @filter should be a string, instead of ${params.to}`)
+      return
+    }
 
-		let isArray = Array.isArray(result)
-		let code = params.to
+    let isArray = Array.isArray(result)
+    let code = params.to
 
-		result = result.map(item => {
-			let sandbox
-			if (isPlainObject(item)) {
-				sandbox = { ...item, ...params.context }
-			} else {
-				sandbox = { [ctx.fieldName]: item, ...params.context }
-			}
-			return vm.runInContext(code, vm.createContext(sandbox))
-		})
+    result = isArray ? result : [result]
 
-		ctx.result = isArray ? result : reuslt[0]
-	}
+    result = result.map(item => {
+      let sandbox
+      if (isPlainObject(item)) {
+        sandbox = { ...item, ...params.context }
+      } else {
+        sandbox = { [ctx.fieldName]: item, ...params.context }
+      }
+      return vm.runInContext(code, vm.createContext(sandbox))
+    })
 
-	ctx.directive('filter', handleFilter)
-	return next()
+    ctx.result = isArray ? result : result[0]
+  }
+
+  ctx.directive('map', handleMap)
+  return next()
 }
