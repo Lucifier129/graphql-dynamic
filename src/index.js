@@ -1,98 +1,115 @@
 const { graphql } = require('graphql-anywhere/lib/async')
 const gql = require('graphql-tag')
-const fetch = require('node-fetch')
 const compose = require('koa-compose')
-const { getValue, isThenable, deferred } = require('./util')
+const fetch = require('isomorphic-fetch')
+const { getValue, isThenable } = require('./util')
+const directives = require('./directives')
+const createVariables = require('./createVariables')
 
-const check = async (ctx, next) => {
-  let directives = getValue(ctx.info.directives)
-  let args = getValue(ctx.args)
+const resolveDynamicArgs = async (ctx, next) => {
+	let directives = getValue(ctx.info.directives)
+	let args = getValue(ctx.args)
 
-  if (isThenable(directives)) {
-    ctx.info.directives = await directives
-  }
+	if (isThenable(directives)) {
+		ctx.info.directives = await directives
+	}
 
-  if (isThenable(args)) {
-    ctx.args = await args
-  }
-  return next()
+	if (isThenable(args)) {
+		ctx.args = await args
+	}
+	return next()
 }
 
-const create = config => {
-  return (query, variables) => {
-    let deferredMap = {}
-    let variablesProxy = new Proxy(variables, {
-      get(target, key) {
-        if (key in target) {
-          return target[key]
-        }
-        if (!deferredMap.hasOwnProperty(key)) {
-          resolveMap[key] = deferred()
-        }
-        return deferredMap[key].promise
-      }
-    })
-    let errors = []
-    let resolve = compose(
-      check,
-      ...config.middlewares
-    )
-    let resolver = async (fieldName, rootValue, args, context, info) => {
-      let context = {
-        fieldName,
-        rootValue,
-        args,
-        context,
-        info,
-        errors,
-        result: null
-      }
-      await resolve(context)
-      return context.result
-    }
-    return graphql(resolver, query, null, null, variablesProxy)
-  }
+const addBaseUtils = (ctx, next) => {
+	ctx.fetch = fetch
+	ctx.error = error => {
+		ctx.errors.push(`Error in field ${ctx.fieldName}\n${error}`)
+	}
+	return next()
 }
 
-const resolver = async (fieldName, rootValue, args, context, info) => {
-  console.log('info', info)
-  return await args.value
+const builtInMiddlewares = [resolveDynamicArgs, addBaseUtils, ...directives]
+
+const create = (...middlewares) => {
+	let resolve = compose([...builtInMiddlewares, ...middlewares])
+	let resolver = async (fieldName, rootValue, args, context, info) => {
+		try {
+			await resolve({
+				...context,
+				fieldName,
+				rootValue,
+				args,
+				info
+			})
+			return context.result
+		} catch (error) {
+			// console.log('error resolver', error)
+			context.errors.push(`Error in field ${fieldName} \n${error}`)
+			return null
+		}
+	}
+	return async (query, variables, context, rootValue) => {
+		let errors = []
+		let finalContext = {
+			errors,
+			variables: createVariables(variables),
+			result: null,
+			...context
+		}
+
+		let data = await graphql(
+			resolver,
+			query,
+			rootValue,
+			finalContext,
+			finalContext.variables
+		)
+
+		return { errors, data }
+	}
 }
 
-const q1 = gql`
-  {
-    object(value: { a: 123, b: $test, c: 522 })
-    provide(value: 123) @variable(name: "provide") @val
-    a(value: $testA)
-      @get(
-        url: "/12446/getUserInfo"
-        query: { a: 1, b: 2, c: 3 }
-        options: {
-          headers: [{ key: "Content-Type", value: "application/json" }]
-        }
-      )
-      @drop(if: true)
-    b(value: $provide)
-      @post(url: "/12446/getUserInfo", body: { a: 1, b: 2, c: 3 })
-  }
-`
-
-const proxy = new Proxy(
-  {},
-  {
-    get(target, key) {
-      return Promise.resolve(key)
-    }
-  }
-)
+const load = create()
 
 const test = async () => {
-  // Filter the data!
-  const result = await graphql(resolver, q1, null, null, proxy)
-
-  console.log('result', result)
+	try {
+		const result = await load(gql`
+			{
+				data @create(value: { a: 1, b: 2 }) {
+					a
+					b @variable
+				}
+				# test @create(value: $b)
+			}
+		`)
+		console.log('test')
+		console.log('result', result)
+	} catch (error) {
+		console.log('error', error)
+	}
+	console.log('return')
 }
 
 test()
 
 module.exports = { create }
+
+gql`
+	{
+		object(value: { a: 123, b: $test, c: 522 })
+		provide(value: 123) @variable(name: "provide") @val
+		a(value: $testA)
+			@get(
+				url: "/12446/getUserInfo"
+				query: { a: 1, b: 2, c: 3 }
+				options: { headers: [["Content-Type", "application/json"]] }
+			)
+			@drop(if: true)
+		b(value: $provide)
+			@post(url: "/12446/getUserInfo", body: { a: 1, b: 2, c: 3 })
+			@do(filter: "b === 1")
+			@filter(if: "xxx = 1")
+			@map(to: "x * 2")
+			@create(value: { a: 1, b: 2, c: 3 })
+	}
+`

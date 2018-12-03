@@ -4,7 +4,7 @@
   "description": "dynamic schemaless graphql",
   "main": "index.js",
   "scripts": {
-    "graphql-anywhere": "babel graphql-anywhere/lib --out-dir graphql-anywhere/dist",
+    "build": "babel src --out-dir lib",
     "test": "jest"
   },
   "repository": {
@@ -22,9 +22,10 @@
     "graphql": "^14.0.2",
     "graphql-anywhere": "^4.1.23",
     "graphql-tag": "^2.10.0",
+    "isomorphic-fetch": "^2.2.1",
     "koa-compose": "^4.1.0",
-    "node-fetch": "^2.3.0",
-    "querystring": "^0.2.0"
+    "querystring": "^0.2.0",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.5",
