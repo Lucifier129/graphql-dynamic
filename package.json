@@ -5,12 +5,10 @@
 	"main": "src/createLoaderForServer",
 	"browser": "src/createLoaderForBrowser",
 	"scripts": {
-		"build": "babel src --out-dir lib",
 		"test": "jest"
 	},
 	"files": [
 		"src",
-		"lib",
 		"LICENSE",
 		"README.md"
 	],
@@ -36,9 +34,6 @@
 		"vm-browserify": "^1.1.0"
 	},
 	"devDependencies": {
-		"@babel/cli": "^7.1.5",
-		"@babel/core": "^7.1.6",
-		"@babel/preset-env": "^7.1.6",
 		"jest": "^23.6.0"
 	}
 }

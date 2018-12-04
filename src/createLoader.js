@@ -1,4 +1,5 @@
 const { graphql } = require('graphql-anywhere/lib/async')
+const gql = require('graphql-tag')
 const compose = require('koa-compose')
 const createVariables = require('./createVariables')
 const resolveDynamicArgs = require('./middlewares/resolveDynamicArgs')
@@ -68,6 +69,8 @@ const createLoader = config => {
 			variables,
 			...context
 		}
+
+		query = typeof query === 'string' ? gql(query) : query
 
 		let data = await graphql(resolver, query, rootValue, context, variables)
 		return { errors, data }
