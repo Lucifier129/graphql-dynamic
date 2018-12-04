@@ -1,14 +1,17 @@
-const URL = require('URL')
+const URL = require('url')
 const querystring = require('querystring')
 const { fromEntries } = require('../util')
 
 module.exports = (ctx, next) => {
-	let handleGet = async params => {
+	let handlePost = async params => {
+		if (typeof ctx.fetch !== 'function') {
+			throw new Error(`ctx.fetch is not a function in @post`)
+		}
 		// handle url
 		let url = params.url
 
 		if (!url) {
-			ctx.error(`@get without url arg is not recommended`)
+			ctx.error(`@post without \`url\` is not recommended`)
 			return
 		}
 
@@ -17,8 +20,8 @@ module.exports = (ctx, next) => {
 		}
 
 		if (typeof url !== 'string') {
-      ctx.error(`url arg is not valid in @get`)
-      return
+			ctx.error(`url is not valid in @post: ${url}`)
+			return
 		}
 
 		// merge params.query into url
@@ -37,16 +40,24 @@ module.exports = (ctx, next) => {
 			...fromEntries(options.headers)
 		}
 
+		let body = params.body
+		let bodyType = params.bodyType || 'json'
+
+		if (bodyType === 'json') {
+			body = JSON.stringify(body)
+		}
+
 		// handle request
 		let response = await ctx.fetch(url, {
 			...options,
-			method: 'GET'
+			method: 'POST',
+			body
 		})
 
 		// handle transform
-		let type = params.type || 'json'
+		let type = params.responseType || 'json'
 		if (typeof response[type] !== 'function') {
-			ctx.error(`Unsupported type in @get: ${type}`)
+			ctx.error(`Unsupported response type in @post: ${type}`)
 			return
 		}
 
@@ -55,6 +66,6 @@ module.exports = (ctx, next) => {
 		ctx.result = data
 	}
 
-	ctx.directive('get', handleGet, 'pre')
+	ctx.directive('post', handlePost, 'pre')
 	return next()
 }

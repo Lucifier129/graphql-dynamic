@@ -1,13 +1,17 @@
-const URL = require('URL')
+const URL = require('url')
 const { fromEntries } = require('../util')
 
 module.exports = (ctx, next) => {
 	let handleFetch = async params => {
+		if (typeof ctx.fetch !== 'function') {
+			throw new Error(`ctx.fetch is not a function in @fetch`)
+		}
+
 		// handle url
 		let url = params.url
 
 		if (!url) {
-			ctx.error(`@fetch without url arg is not recommended`)
+			ctx.error(`@fetch without \`url\` is not recommended`)
 			return
 		}
 
@@ -16,8 +20,8 @@ module.exports = (ctx, next) => {
 		}
 
 		if (typeof url !== 'string') {
-      ctx.error(`url arg is not valid in @fetch`)
-      return
+			ctx.error(`\`url\` is not valid in @fetch ${url}`)
+			return
 		}
 
 		// handle options
@@ -31,10 +35,10 @@ module.exports = (ctx, next) => {
 		let response = await ctx.fetch(url, options)
 
 		// handle transform
-		let type = params.type || 'json'
+		let type = params.responseType || 'json'
 
 		if (typeof response[type] !== 'function') {
-			ctx.error(`Unsupported type in @fetch: ${type}`)
+			ctx.error(`Unsupported response type in @fetch: ${type}`)
 			return
 		}
 

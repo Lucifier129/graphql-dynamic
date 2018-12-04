@@ -1,9 +1,3 @@
-const delay = time => {
-	return new Promise(resolve => {
-		setTimeout(resolve, time)
-	})
-}
-
 const entries = obj => {
 	return Object.entries(obj)
 }
@@ -71,13 +65,20 @@ const deferred = () => {
 	return { promise, resolve, reject }
 }
 
+const getMessage = (error, dev = false) => {
+	if (error instanceof Error) {
+		return dev ? error.stack : error.message
+	}
+	return error + ''
+}
+
 module.exports = {
-  entries,
+	getMessage,
+	entries,
 	fromEntries,
 	deferred,
 	isThenable,
 	getValue,
 	getObject,
-	getArray,
-	delay
+	getArray
 }

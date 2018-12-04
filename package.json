@@ -2,7 +2,8 @@
   "name": "graphql-dynamic",
   "version": "0.0.1",
   "description": "dynamic schemaless graphql",
-  "main": "index.js",
+  "main": "src/createLoaderForServer",
+  "browser": "src/createLoaderForBrowser",
   "scripts": {
     "build": "babel src --out-dir lib",
     "test": "jest"
@@ -25,7 +26,8 @@
     "isomorphic-fetch": "^2.2.1",
     "koa-compose": "^4.1.0",
     "querystring": "^0.2.0",
-    "url": "^0.11.0"
+    "url": "^0.11.0",
+    "vm-browserify": "^1.1.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.5",
