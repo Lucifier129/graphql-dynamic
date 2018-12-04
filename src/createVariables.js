@@ -11,12 +11,10 @@ module.exports = (variables, timeout = 3000) => {
 
 			// async value
 			if (!deferredMap.hasOwnProperty(key)) {
-				deferredMap[key] = deferred()
-
-				deferredMap[key].tid = setTimeout(() => {
-					deferredMap[key].reject(
-						new Error(`await for variable $${key} timeout`)
-					)
+				let obj = (deferredMap[key] = deferred())
+				obj.isResolved = false
+				obj.tid = setTimeout(() => {
+					deferredMap[key].reject(new Error(`variable $${key} timeout`))
 				}, timeout)
 			}
 
@@ -25,7 +23,7 @@ module.exports = (variables, timeout = 3000) => {
 		set(target, key, value) {
 			// read-only
 			if (key in target) {
-				return true
+				throw new Error(`variable $${key} can not be assigned more than once`)
 			}
 
 			// dynamic
@@ -35,8 +33,15 @@ module.exports = (variables, timeout = 3000) => {
 			}
 
 			// async & dynamic
-			deferredMap[key].resolve(value)
-			clearTimeout(deferredMap[key].tid)
+			let obj = deferredMap[key]
+
+			if (obj.isResolved) {
+				throw new Error(`variable $${key} can not be assigned more than once`)
+			}
+
+			obj.isResolved = true
+			obj.resolve(value)
+			clearTimeout(obj.tid)
 			return true
 		}
 	})
