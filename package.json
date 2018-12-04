@@ -5,7 +5,7 @@
 	"main": "src/createLoaderForServer",
 	"browser": "src/createLoaderForBrowser",
 	"scripts": {
-		"test": "jest"
+		"test": "jest --verbose"
 	},
 	"files": [
 		"src",

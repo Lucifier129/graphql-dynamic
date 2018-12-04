@@ -33,7 +33,7 @@ module.exports = (ctx, next) => {
 			} else {
 				sandbox = { [ctx.fieldName]: item, ...params.context }
 			}
-			return ctx.runInContext(code, sandbox)
+			return ctx.runInContext(`(${code})`, sandbox)
 		})
 
 		ctx.result = isArray ? result : result[0]
