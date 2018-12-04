@@ -1,2 +1,3 @@
 # graphql-dynamic
-dynamic schemaless graphql
+
+dynamic, schema-less, directive-drive Graphql

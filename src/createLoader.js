@@ -26,7 +26,6 @@ const createLoader = config => {
 	let doResolve = null
 	let resolve = context => {
 		if (!doResolve) {
-			console.log('middlewares', middlewares)
 			doResolve = compose(middlewares)
 		}
 		return doResolve(context)
