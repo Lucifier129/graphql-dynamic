@@ -1,4 +1,6 @@
 module.exports = (key, value) => (ctx, next) => {
-	ctx[key] = value
-	return next()
+  if (!ctx.hasOwnProperty(key)) {
+    ctx[key] = value
+  }
+  return next()
 }

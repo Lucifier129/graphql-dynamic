@@ -59,6 +59,6 @@ module.exports = (ctx, next) => {
 		ctx.result = data
 	}
 
-	ctx.directive('get', handleGet, 'pre')
+	ctx.directive('get', handleGet)
 	return next()
 }

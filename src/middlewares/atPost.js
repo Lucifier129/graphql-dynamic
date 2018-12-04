@@ -66,6 +66,6 @@ module.exports = (ctx, next) => {
 		ctx.result = data
 	}
 
-	ctx.directive('post', handlePost, 'pre')
+	ctx.directive('post', handlePost)
 	return next()
 }
