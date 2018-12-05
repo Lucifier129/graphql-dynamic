@@ -45,6 +45,8 @@ module.exports = (ctx, next) => {
 
 		if (bodyType === 'json') {
 			body = JSON.stringify(body)
+		} else if (bodyType === 'text') {
+			body = body + ''
 		}
 
 		// handle request

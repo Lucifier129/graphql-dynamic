@@ -335,4 +335,155 @@ describe('createLoaderForServer', () => {
 			})
 		})
 	})
+
+	describe('@fetch', async () => {
+		beforeEach(() => {
+			loader.use((ctx, next) => {
+				// fake fetch
+				ctx.fetch = (url, options) => {
+					let response = {
+						json: () => Promise.resolve({ url, options }),
+						text: () => Promise.resolve(JSON.stringify({ url, options }))
+					}
+					return Promise.resolve(response)
+				}
+				return next()
+			})
+		})
+
+		test('fetch data', async () => {
+			let query = gql`
+				{
+					a
+						@fetch(
+							url: "/url"
+							options: {
+								method: "GET"
+								headers: [
+									["Content-Type", "application/json"]
+									["Cookie", "a=1&b=2"]
+								]
+							}
+						)
+				}
+			`
+			let result = await loader.load(query)
+			expect(result.errors).toEqual([])
+			expect(result.data).toEqual({
+				a: {
+					url: '/url',
+					options: {
+						method: 'GET',
+						headers: {
+							'Content-Type': 'application/json',
+							Cookie: 'a=1&b=2'
+						}
+					}
+				}
+			})
+		})
+
+		test('set responseType to text', async () => {
+			let query = gql`
+				{
+					a
+						@fetch(
+							url: "/url"
+							options: {
+								method: "GET"
+								headers: [
+									["Content-Type", "application/json"]
+									["Cookie", "a=1&b=2"]
+								]
+							}
+							responseType: "text"
+						)
+				}
+			`
+			let result = await loader.load(query)
+			expect(result.errors).toEqual([])
+			expect(result.data).toEqual({
+				a: JSON.stringify({
+					url: '/url',
+					options: {
+						method: 'GET',
+						headers: {
+							'Content-Type': 'application/json',
+							Cookie: 'a=1&b=2'
+						}
+					}
+				})
+			})
+		})
+
+		test('set bodyType to json', async () => {
+			let query = gql`
+				{
+					a
+						@fetch(
+							url: "/url"
+							options: {
+								method: "POST"
+								headers: [
+									["Content-Type", "application/json"]
+									["Cookie", "a=1&b=2"]
+								]
+								body: { b: 1, c: 2 }
+							}
+							bodyType: "json"
+						)
+				}
+			`
+			let result = await loader.load(query)
+			expect(result.errors).toEqual([])
+			expect(result.data).toEqual({
+				a: {
+					url: '/url',
+					options: {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							Cookie: 'a=1&b=2'
+						},
+						body: JSON.stringify({ b: 1, c: 2 })
+					}
+				}
+			})
+		})
+
+		test('set bodyType to text', async () => {
+			let query = gql`
+				{
+					a
+						@fetch(
+							url: "/url"
+							options: {
+								method: "POST"
+								headers: [
+									["Content-Type", "application/json"]
+									["Cookie", "a=1&b=2"]
+								]
+								body: { b: 1, c: 2 }
+							}
+							bodyType: "text"
+						)
+				}
+			`
+			let result = await loader.load(query)
+			expect(result.errors).toEqual([])
+			expect(result.data).toEqual({
+				a: {
+					url: '/url',
+					options: {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							Cookie: 'a=1&b=2'
+						},
+						body: '[object Object]'
+					}
+				}
+			})
+		})
+	})
 })
