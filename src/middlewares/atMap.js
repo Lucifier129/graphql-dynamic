@@ -2,8 +2,8 @@ const isPlainObject = require('is-plain-object')
 
 module.exports = (ctx, next) => {
 	let handleMap = params => {
-		if (typeof ctx.runInContext !== 'function') {
-			throw new Error(`ctx.runInContext is not a function in @map`)
+		if (typeof ctx.createFunction !== 'function') {
+			throw new Error(`ctx.createFunction is not a function in @map`)
 		}
 
 		let result = ctx.result
@@ -23,17 +23,18 @@ module.exports = (ctx, next) => {
 
 		let isArray = Array.isArray(result)
 		let code = params.to
+		let map = ctx.createFunction(code, '$item', '$index', '$list')
 
 		result = isArray ? result : [result]
 
-		result = result.map(item => {
-			let sandbox
+		result = result.map((item, index, list) => {
+			let context
 			if (isPlainObject(item)) {
-				sandbox = { ...item, ...params.context }
+				context = { ...item, ...params.context }
 			} else {
-				sandbox = { [ctx.fieldName]: item, ...params.context }
+				context = { [ctx.fieldName]: item, ...params.context }
 			}
-			return ctx.runInContext(`(${code})`, sandbox)
+			return map(context, item, index, list)
 		})
 
 		ctx.result = isArray ? result : result[0]

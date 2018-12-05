@@ -10,7 +10,7 @@ describe('getValue', () => {
 		expect(getValue([])).toEqual([])
 	})
 
-	test('get object without promise should return itself', () => {
+	test('return itself when getting object without promise', () => {
 		let obj = {
 			a: 1,
 			b: 2
@@ -18,7 +18,7 @@ describe('getValue', () => {
 		expect(getValue(obj) === obj).toBe(true)
 	})
 
-	test('get object value with promises should return promise', async () => {
+	test('return promise when getting object value with promises', async () => {
 		let obj = {
 			a: Promise.resolve(1),
 			b: Promise.resolve(2)
@@ -28,7 +28,7 @@ describe('getValue', () => {
 		expect(await result).toEqual({ a: 1, b: 2 })
 	})
 
-	test('supports nest obj without promise', async () => {
+	test('nest obj without promise', async () => {
 		let obj = {
 			a: {
 				b: {
@@ -43,7 +43,7 @@ describe('getValue', () => {
 		expect(getValue(obj) === obj).toBe(true)
 	})
 
-	test('supports nest obj with promise', async () => {
+	test('nest obj with promise', async () => {
 		let obj = {
 			a: {
 				b: {
@@ -69,12 +69,12 @@ describe('getValue', () => {
 		})
 	})
 
-	test('get array without promise should return itself', () => {
+	test('return itself when getting array without promise ', () => {
 		let array = [1, 2, 3]
 		expect(getValue(array) === array).toBe(true)
 	})
 
-	test('get array with promise should return promise', async () => {
+	test('return promise when getting array with promise ', async () => {
 		let array = [1, 2, Promise.resolve(3)]
 
 		let result = getValue(array)
@@ -84,12 +84,12 @@ describe('getValue', () => {
 		expect(await result).toEqual([1, 2, 3])
 	})
 
-	test('supports nest array without promise', () => {
+	test('nest array without promise', () => {
 		let array = [1, 2, [3, 4, [5, 6, [7]]], [8]]
 		expect(getValue(array) === array).toBe(true)
 	})
 
-	test('supports nest array with promise', async () => {
+	test('nest array with promise', async () => {
 		let array = [
 			1,
 			2,
@@ -100,7 +100,7 @@ describe('getValue', () => {
 		expect(result).toEqual([1, 2, [3, 4, [5, 6, [7]]], [8]])
 	})
 
-	test('supports mix array and object without promise', () => {
+	test('mix array and object without promise', () => {
 		let obj = {
 			arr: [1, 2, { a: 1, b: [2] }],
 			c: 1,
@@ -112,7 +112,7 @@ describe('getValue', () => {
 		expect(result === obj).toBe(true)
 	})
 
-	test('supports mix array and object with promise', async () => {
+	test('mix array and object with promise', async () => {
 		let obj = {
 			arr: [1, 2, { a: Promise.resolve(1), b: [2] }],
 			c: 1,
@@ -130,7 +130,7 @@ describe('getValue', () => {
 		})
 	})
 
-	test('should be able to catch rejected value', async () => {
+	test('catch rejected value', async () => {
 		let obj = {
 			rejected: Promise.reject(new Error('rejected'))
 		}
@@ -145,19 +145,19 @@ describe('getValue', () => {
 })
 
 describe('fromEntries', () => {
-	test('should return empty-object when receives empty-array', () => {
+	test('return empty-object when receiving empty-array', () => {
 		let obj = fromEntries([])
 		expect(obj).toEqual({})
 	})
 
-	test('should return empty-object when receives non-array argument', () => {
+	test('return empty-object when receiving non-array argument', () => {
 		expect(fromEntries(1)).toEqual({})
 		expect(fromEntries('1')).toEqual({})
 		expect(fromEntries({})).toEqual({})
 		expect(fromEntries(null)).toEqual({})
 	})
 
-	test('should construct object correctly', () => {
+	test('construct object correctly', () => {
 		let headers = [['Content-Type', 'application/json'], ['Cookie', 'a=1&b=2']]
 		let obj = fromEntries(headers)
 

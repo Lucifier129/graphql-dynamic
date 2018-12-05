@@ -2,13 +2,21 @@ const isPlainObject = require('is-plain-object')
 
 module.exports = (ctx, next) => {
 	let handleFilter = params => {
-		if (typeof ctx.runInContext !== 'function') {
-			throw new Error(`ctx.runInContext is not a function in @filter`)
+		if (typeof ctx.createFunction !== 'function') {
+			throw new Error(`ctx.createFunction is not a function in @filter`)
 		}
 
 		let result = ctx.result
 
 		if (result == null) {
+			return
+		}
+
+		// if params.if is boolean, it will work like @include
+		if (typeof params.if === 'boolean') {
+			if (!params.if) {
+				ctx.result = undefined
+			}
 			return
 		}
 
@@ -23,17 +31,18 @@ module.exports = (ctx, next) => {
 
 		let isArray = Array.isArray(result)
 		let code = params.if
+		let filter = ctx.createFunction(code, '$item', '$index', '$list')
 
 		result = isArray ? result : [result]
 
-		result = result.filter(item => {
-			let sandbox
+		result = result.filter((item, index, list) => {
+			let context
 			if (isPlainObject(item)) {
-				sandbox = { ...item, ...params.context }
+				context = { ...item, ...params.context }
 			} else {
-				sandbox = { [ctx.fieldName]: item, ...params.context }
+				context = { [ctx.fieldName]: item, ...params.context }
 			}
-			return ctx.runInContext(`(${code})`, sandbox)
+			return filter(context, item, index, list)
 		})
 
 		ctx.result = isArray ? result : result[0]

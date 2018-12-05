@@ -1,24 +1,24 @@
 const createVariables = require('../src/createVariables')
 
 describe('createVariables', () => {
-	test('should get exsited key correctly', () => {
+	test('get exsited key correctly', () => {
 		let variables = createVariables({ a: 1, b: 2 })
 		expect(variables.a).toBe(1)
 		expect(variables.b).toBe(2)
 	})
 
-	test('should get dynamic key correctly', () => {
+	test('get dynamic key correctly', () => {
 		let variables = createVariables({ a: 1, b: 2 })
 		variables.c = 1
 		expect(variables.c).toBe(1)
 	})
 
-	test('should return promise when get non-esited key', () => {
+	test('return promise when get non-esited key', () => {
 		let variables = createVariables({ a: 1, b: 2 })
 		expect(variables.c instanceof Promise).toBe(true)
 	})
 
-	test('should resolve promise when set value', done => {
+	test('resolve promise when set value', done => {
 		let variables = createVariables({ a: 1, b: 2 })
 		variables.c.then(c => {
 			expect(c).toBe(1)
@@ -27,7 +27,7 @@ describe('createVariables', () => {
 		variables.c = 1
 	})
 
-	test('should reject promise when timeout', done => {
+	test('reject promise when timeout', done => {
 		let variables = createVariables({ a: 1, b: 2 }, 5)
 		variables.c.catch(error => {
 			expect(error instanceof Error).toBe(true)
@@ -35,7 +35,7 @@ describe('createVariables', () => {
 		})
 	})
 
-	test('should throw error when assign value more than once', done => {
+	test('throw error when assign value more than once', done => {
 		let variables = createVariables({ a: 1, b: 2 })
 		let errorCount = 0
 

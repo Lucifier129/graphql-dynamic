@@ -12,7 +12,7 @@ describe('createLoaderForServer', () => {
 	})
 
 	describe('@create', () => {
-		test('should create object for non-leaf field automaticlly', async () => {
+		test('create object for non-leaf field automaticlly', async () => {
 			let query = gql`
 				{
 					a {
@@ -37,7 +37,7 @@ describe('createLoaderForServer', () => {
 			})
 		})
 
-		test('should support create value for field', async () => {
+		test('create value for field', async () => {
 			let query = gql`
 				{
 					a @create(value: 1)
@@ -51,7 +51,7 @@ describe('createLoaderForServer', () => {
 			expect(result.data).toEqual({ a: 1, b: '1', c: [], d: {} })
 		})
 
-		test('should support create complex value for field', async () => {
+		test('create complex value for field', async () => {
 			let query = gql`
 				{
 					a @create(value: { b: [1, 2, 3], c: { e: "e" }, d: [{ f: "f" }] }) {
@@ -74,7 +74,7 @@ describe('createLoaderForServer', () => {
 	})
 
 	describe('@variable', () => {
-		test('should support access existed variables', async () => {
+		test('access existed variables', async () => {
 			let variables = { a: 1, b: 2 }
 			let query = gql`
 				{
@@ -87,7 +87,7 @@ describe('createLoaderForServer', () => {
 			expect(result.data).toEqual({ a: 1, b: 2 })
 		})
 
-		test('should support access dynamic variables', async () => {
+		test('access dynamic variables', async () => {
 			let query = gql`
 				{
 					a @create(value: 1) @variable
@@ -103,7 +103,7 @@ describe('createLoaderForServer', () => {
 			expect(result.data).toEqual({ a: 1, b: 2, test: { a: 1, b: 2 } })
 		})
 
-		test('should support access async and dynamic variables', async () => {
+		test('access async and dynamic variables', async () => {
 			let query = gql`
 				{
 					test {
@@ -119,7 +119,7 @@ describe('createLoaderForServer', () => {
 			expect(result.data).toEqual({ test: { a: 1, b: 2 }, a: 1, b: 2 })
 		})
 
-		test('should support rename dynamic variables', async () => {
+		test('rename dynamic variables', async () => {
 			let query = gql`
 				{
 					a @create(value: 1) @variable(name: "custom_name")
@@ -133,7 +133,7 @@ describe('createLoaderForServer', () => {
 	})
 
 	describe('@map', () => {
-		test('should support tranfrom value in non-object filed', async () => {
+		test('access filedName in non-object field', async () => {
 			let query = gql`
 				{
 					a @create(value: 1) @map(to: "a + 1")
@@ -144,7 +144,7 @@ describe('createLoaderForServer', () => {
 			expect(result.data).toEqual({ a: 2 })
 		})
 
-		test('should support tranfrom value in object filed', async () => {
+		test('access children fieldNames in object field', async () => {
 			let query = gql`
 				{
 					a @create(value: { b: 1, c: 2 }) @map(to: "{ b: c + 1, c: b - 1 }") {
@@ -158,7 +158,7 @@ describe('createLoaderForServer', () => {
 			expect(result.data).toEqual({ a: { b: 3, c: 0 } })
 		})
 
-		test('should support access `this` in object filed', async () => {
+		test('access `this` in object field', async () => {
 			let query = gql`
 				{
 					a @create(value: { b: 1, c: 2 }) @map(to: "{ ...this, c: b - 1 }") {
@@ -170,6 +170,169 @@ describe('createLoaderForServer', () => {
 			let result = await loader.load(query)
 			expect(result.errors).toEqual([])
 			expect(result.data).toEqual({ a: { b: 1, c: 0 } })
+		})
+
+		test('transform value in array field', async () => {
+			let query = gql`
+				{
+					a
+						@create(value: [{ b: 1, c: 2 }])
+						@map(to: "{ b: c + 1, c: b - 1 }") {
+						b
+						c
+					}
+				}
+			`
+			let result = await loader.load(query)
+			expect(result.errors).toEqual([])
+			expect(result.data).toEqual({ a: [{ b: 3, c: 0 }] })
+		})
+
+		test('access `this` in array field', async () => {
+			let query = gql`
+				{
+					a @create(value: [{ b: 1, c: 2 }]) @map(to: "{ ...this, c: b - 1 }") {
+						b
+						c
+					}
+				}
+			`
+			let result = await loader.load(query)
+			expect(result.errors).toEqual([])
+			expect(result.data).toEqual({ a: [{ b: 1, c: 0 }] })
+		})
+
+		test('merge context into @map', async () => {
+			let query = gql`
+				{
+					a
+						@create(value: { b: 1, c: 2 })
+						@map(to: "{...this}", context: { d: 3, e: 4 })
+				}
+			`
+			let result = await loader.load(query)
+			expect(result.errors).toEqual([])
+			expect(result.data).toEqual({
+				a: {
+					b: 1,
+					c: 2,
+					d: 3,
+					e: 4
+				}
+			})
+		})
+
+		test('access meta variables', async () => {
+			let query = gql`
+				{
+					a @create(value: 1) @map(to: "$item")
+					b @create(value: 2) @map(to: "$index")
+					c
+						@create(value: [{ d: 1 }, { d: 2 }])
+						@map(to: "{ d: d * $index + $list.length } ")
+				}
+			`
+			let result = await loader.load(query)
+			expect(result.errors).toEqual([])
+			expect(result.data).toEqual({
+				a: 1,
+				b: 0,
+				c: [
+					{
+						d: 2
+					},
+					{
+						d: 4
+					}
+				]
+			})
+		})
+	})
+
+	describe('@filter', () => {
+		test('boolean arg works like @include', async () => {
+			let query = gql`
+				{
+					a @create(value: 1) @filter(if: false)
+					b @create(value: 2) @filter(if: true)
+				}
+			`
+			let result = await loader.load(query)
+			expect(result.errors).toEqual([])
+			expect(result.data).toEqual({
+				b: 2
+			})
+		})
+
+		test('access filedName in non-object field', async () => {
+			let query = gql`
+				{
+					a @create(value: 1) @filter(if: "a === 1")
+					b @create(value: 2) @filter(if: "b === 1")
+				}
+			`
+			let result = await loader.load(query)
+			expect(result.errors).toEqual([])
+			expect(result.data).toEqual({
+				a: 1
+			})
+		})
+
+		test('access children fieldNames in object field', async () => {
+			let query = gql`
+				{
+					a @create(value: { b: 1, c: 2 }) @filter(if: "b === 1 && c === 2")
+				}
+			`
+			let result = await loader.load(query)
+			expect(result.errors).toEqual([])
+			expect(result.data).toEqual({
+				a: {
+					b: 1,
+					c: 2
+				}
+			})
+		})
+
+		test('merge context into @filter', async () => {
+			let query = gql`
+				{
+					a @create(value: { b: 1, c: 2 }) {
+						b @filter(if: "test", context: { test: true })
+						c @filter(if: "test", context: { test: false })
+					}
+				}
+			`
+			let result = await loader.load(query)
+			expect(result.errors).toEqual([])
+			expect(result.data).toEqual({
+				a: {
+					b: 1
+				}
+			})
+		})
+
+		test('access meta variables', async () => {
+			let query = gql`
+				{
+					a @create(value: 1) @filter(if: "$item === 1")
+					b @create(value: 2) @filter(if: "$index !== 0")
+					c @create(value: [{ d: 1 }, { d: 2 }]) @filter(if: "$list.length")
+				}
+			`
+			let result = await loader.load(query)
+			expect(result.errors).toEqual([])
+			expect(result.data).toEqual({
+				a: 1,
+				c: [
+					{
+						d: 1
+					},
+					{
+						d: 2
+					}
+				]
+			})
 		})
 	})
 })

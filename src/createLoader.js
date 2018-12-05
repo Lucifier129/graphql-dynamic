@@ -1,6 +1,7 @@
 const { graphql } = require('graphql-anywhere/lib/async')
 const gql = require('graphql-tag')
 const compose = require('koa-compose')
+const { getMessage } = require('./util')
 const createVariables = require('./createVariables')
 const resolveDynamicArgs = require('./middlewares/resolveDynamicArgs')
 const handleErrors = require('./middlewares/handleErrors')
@@ -10,84 +11,86 @@ const atVariable = require('./middlewares/atVariable')
 const atCreate = require('./middlewares/atCreate')
 
 const builtInMiddlewares = [
-  handleErrors,
-  handleLogs,
-  resolveDynamicArgs,
-  handleDirectives,
-  atCreate,
-  atVariable
+	handleErrors,
+	handleLogs,
+	resolveDynamicArgs,
+	handleDirectives,
+	atCreate,
+	atVariable
 ]
 
 const defaultConfig = {
-  variableTimeout: 3000
+	variableTimeout: 3000
 }
 
 const createLoader = config => {
-  config = { ...defaultConfig, ...config }
+	config = { ...defaultConfig, ...config }
 
-  let middlewares = [...builtInMiddlewares]
-  let doResolve = null
-  let resolve = context => {
-    if (!doResolve) {
-      doResolve = compose(middlewares)
-    }
-    return doResolve(context)
-  }
+	let middlewares = [...builtInMiddlewares]
+	let doResolve = null
+	let resolve = context => {
+		if (!doResolve) {
+			doResolve = compose(middlewares)
+		}
+		return doResolve(context)
+	}
 
-  let resolver = async (fieldName, rootValue, args, context, info) => {
-    let result = rootValue ? rootValue[fieldName] : null
+	let resolver = async (fieldName, rootValue, args, context, info) => {
+		let result = rootValue ? rootValue[fieldName] : undefined
 
-    if (result == null && !info.isLeaf) {
-      result = {}
-    }
+		if (result == null && !info.isLeaf) {
+			result = {}
+		}
 
-    context = {
-      ...context,
-      config,
-      fieldName,
-      rootValue,
-      result,
-      args,
-      info
-    }
+		context = {
+			...context,
+			config,
+			fieldName,
+			rootValue,
+			result,
+			args,
+			info
+		}
 
-    try {
-      await resolve(context)
-      return context.result
-    } catch (error) {
-      context.errors.push(`Error in field [${fieldName}] \n${error.stack}`)
-      return null
-    }
-  }
+		try {
+			await resolve(context)
+			return context.result
+		} catch (error) {
+			context.errors.push({
+				field: fieldName,
+				message: getMessage(error, context.dev)
+			})
+		}
+	}
 
-  let load = async (query, variables, context, rootValue) => {
-    let errors = []
-    let logs = []
+	let load = async (query, variables, context, rootValue) => {
+		let errors = []
+		let logs = []
 
-    context = context || {}
-    variables = createVariables(variables, config.variableTimeout)
+		context = context || {}
+		variables = createVariables(variables, config.variableTimeout)
 
-    context = {
-      errors,
-      logs,
-      variables,
-      ...context
-    }
+		context = {
+			errors,
+			logs,
+			variables,
+			...context
+		}
 
-    query = typeof query === 'string' ? gql(query) : query
+		query = typeof query === 'string' ? gql(query) : query
 
-    let data = await graphql(resolver, query, rootValue, context, variables)
-    return { errors, logs, data }
-  }
+		let data = await graphql(resolver, query, rootValue, context, variables)
+		return { errors, logs, data }
+	}
 
-  let use = (...customMiddlewares) => {
-    middlewares.push(...customMiddlewares)
-  }
+	let use = (...customMiddlewares) => {
+		middlewares.push(...customMiddlewares)
+	}
 
-  return {
-    load,
-    use
-  }
+	return {
+		load,
+		use
+	}
 }
 
 module.exports = createLoader
