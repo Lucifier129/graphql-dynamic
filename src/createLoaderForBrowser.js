@@ -14,7 +14,7 @@ module.exports = config => {
 
 	loader.use(attach('vm', vm))
 	loader.use(attach('fetch', fetch))
-	loader.use(createFunction, atFilter, atMap, atFetch, atGet, atPost)
+	loader.use(createFunction, atFilter, atMap, atFetch, atGet, atPost, atExtend, atAppend, atPrepend)
 
 	return loader
 }

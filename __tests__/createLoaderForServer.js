@@ -644,4 +644,127 @@ describe('createLoaderForServer', () => {
       expect(result.data.a.options.body).toEqual('[object Object]')
     })
   })
+
+  describe('@extend', () => {
+    test('extend object in nullable field', async () => {
+      let query = gql`
+        {
+          a @extend(b: 1, c: 2)
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({ a: { b: 1, c: 2 } })
+    })
+
+    test('extend object in non-nullable field', async () => {
+      let query = gql`
+        {
+          a @create(value: { b: 0, d: 3 }) @extend(b: 1, c: 2)
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({ a: { b: 1, c: 2, d: 3 } })
+    })
+
+    test('extend object in array field', async () => {
+      let query = gql`
+        {
+          a
+            @create(value: [{ b: 0, d: 3 }, { b: -1, d: 4 }])
+            @extend(b: 1, c: 2)
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({
+        a: [{ b: 1, c: 2, d: 3 }, { b: 1, c: 2, d: 4 }]
+      })
+    })
+  })
+
+  describe('@append', () => {
+    test('append value in nullable field', async () => {
+      let query = gql`
+        {
+          a @append(value: 1)
+          b @append(value: "1")
+          c @append(value: [1, 2])
+          d @append(value: { value: 1 })
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({
+        a: [1],
+        b: ['1'],
+        c: [1, 2],
+        d: [{ value: 1 }]
+      })
+    })
+
+    test('append value in non-nullable field', async () => {
+      let query = gql`
+        {
+          a @create(value: 0) @append(value: 1)
+          b @create(value: "0") @append(value: "1")
+          c @create(value: 0) @append(value: [1, 2])
+          d @create(value: { value: 0 }) @append(value: { value: 1 })
+          e @create(value: [0, 1, 2]) @append(value: [3, 4, 5])
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({
+        a: [0, 1],
+        b: ['0', '1'],
+        c: [0, 1, 2],
+        d: [{ value: 0 }, { value: 1 }],
+        e: [0, 1, 2, 3, 4, 5]
+      })
+    })
+  })
+
+  describe('@prepend', () => {
+    test('prepend value in nullable field', async () => {
+      let query = gql`
+        {
+          a @prepend(value: 1)
+          b @prepend(value: "1")
+          c @prepend(value: [1, 2])
+          d @prepend(value: { value: 1 })
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({
+        a: [1],
+        b: ['1'],
+        c: [1, 2],
+        d: [{ value: 1 }]
+      })
+    })
+
+    test('prepend value in non-nullable field', async () => {
+      let query = gql`
+        {
+          a @create(value: 0) @prepend(value: 1)
+          b @create(value: "0") @prepend(value: "1")
+          c @create(value: 0) @prepend(value: [1, 2])
+          d @create(value: { value: 0 }) @prepend(value: { value: 1 })
+          e @create(value: [0, 1, 2]) @prepend(value: [3, 4, 5])
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({
+        a: [1, 0],
+        b: ['1', '0'],
+        c: [1, 2, 0],
+        d: [{ value: 1 }, { value: 0 }],
+        e: [3, 4, 5, 0, 1, 2]
+      })
+    })
+  })
 })
