@@ -581,6 +581,25 @@ describe('createLoaderForServer', () => {
       expect(result.data.a.options.body).toEqual(JSON.stringify({ a: 1, b: 2 }))
     })
 
+    test('post data multiple times', async () => {
+      let query = gql`
+        {
+          a @create(value: [{ b: 1 }, { b: 2 }]) {
+            b @post(url: "http://localhost:2333/post", body: { c: 1, e: 2 })
+          }
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(Array.isArray(result.data.a)).toBe(true)
+      result.data.a.forEach(data => {
+        expect(data.b.url).toEqual('/post')
+        expect(data.b.options.method).toEqual('POST')
+        expect(data.b.options.headers['content-type']).toBe('application/json')
+        expect(data.b.options.body).toEqual(JSON.stringify({ c: 1, e: 2 }))
+      })
+    })
+
     test('set responseType to text', async () => {
       let query = gql`
         {

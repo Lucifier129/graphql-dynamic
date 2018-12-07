@@ -1,7 +1,7 @@
 module.exports = (ctx, next) => {
   let handleCreate = (params, index) => {
     if (index !== 0) {
-      throw new Error(`@create should be the first direactive`)
+      throw new Error(`@create should be the first directive`)
     }
     ctx.result = params.value
   }

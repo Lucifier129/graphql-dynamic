@@ -3,6 +3,7 @@ const fetch = require('isomorphic-fetch')
 const createLoader = require('./createLoader')
 const attach = require('./middlewares/attach')
 const createFunction = require('./middlewares/createFunction')
+const handleLogFetch = require('./middlewares/handleLogFetch')
 const atFilter = require('./middlewares/atFilter')
 const atMap = require('./middlewares/atMap')
 const atFetch = require('./middlewares/atFetch')
@@ -13,11 +14,21 @@ const atAppend = require('./middlewares/atAppend')
 const atPrepend = require('./middlewares/atPrepend')
 
 module.exports = config => {
-	const loader = createLoader(config)
+  const loader = createLoader(config)
 
-	loader.use(attach('vm', vm))
-	loader.use(attach('fetch', fetch))
-	loader.use(createFunction, atFilter, atMap, atFetch, atGet, atPost, atExtend, atAppend, atPrepend)
+  loader.use(attach('vm', vm))
+  loader.use(attach('fetch', fetch), handleLogFetch)
+  loader.use(
+    createFunction,
+    atFilter,
+    atMap,
+    atFetch,
+    atGet,
+    atPost,
+    atExtend,
+    atAppend,
+    atPrepend
+  )
 
-	return loader
+  return loader
 }
