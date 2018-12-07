@@ -1,28 +1,34 @@
 const { isThenable } = require('../util')
+const isPlainObject = require('is-plain-object')
 
 const handleDirectives = async (ctx, next) => {
-  let directives = {}
+  let directiveHandlers = (ctx.directiveHandlers = {})
+
   ctx.directive = (key, handler) => {
-    directives[key] = handler
+    directiveHandlers[key] = handler
   }
 
   await next()
 
   if (ctx.info.directives) {
-    await executeDirectives(ctx, directives)
+    await executeDirectives(ctx, ctx.info.directives)
   }
 }
 
 const executeDirectives = async (ctx, directives) => {
-  let directiveKeys = Object.keys(ctx.info.directives)
+  let directiveKeys = Object.keys(directives)
 
   for (let i = 0; i < directiveKeys.length; i++) {
     let key = directiveKeys[i]
-    let handler = directives[key]
+    let handler = ctx.directiveHandlers[key]
 
     if (typeof handler === 'function') {
-      let args = ctx.info.directives[key]
-      let result = handler(args || {}, i, directiveKeys)
+      let args = directives[key]
+      let result = handler(
+        isPlainObject(args) ? args : ctx.result,
+        i,
+        directiveKeys
+      )
       if (isThenable(result)) {
         await result
       }

@@ -786,4 +786,45 @@ describe('createLoaderForServer', () => {
       })
     })
   })
+
+  describe('pipe directive', () => {
+    let server
+
+    beforeAll(async () => {
+      server = await createServer(async (req, res) => {
+        let body = await readBody(req)
+        res.end(
+          JSON.stringify({
+            url: req.url,
+            options: { method: req.method, body, headers: req.headers }
+          })
+        )
+      })
+    })
+
+    afterAll(async () => {
+      server.close()
+    })
+
+    test('map -> extend -> post', async () => {
+      let query = gql`
+        {
+          a @create(value: [{ b: 1 }, { b: 2 }]) {
+            b
+              @map(to: "{ body: { b }  }")
+              @extend(url: "http://localhost:2333/map-post")
+              @post
+          }
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(Array.isArray(result.data.a)).toBe(true)
+      result.data.a.forEach((data, i) => {
+        expect(data.b.url).toBe('/map-post')
+        expect(data.b.options.method).toBe('POST')
+        expect(data.b.options.body).toBe(JSON.stringify({ b: i + 1 }))
+      })
+    })
+  })
 })
