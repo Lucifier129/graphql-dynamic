@@ -787,7 +787,7 @@ describe('createLoaderForServer', () => {
     })
   })
 
-  describe('pipe directive', () => {
+  describe('\'use\' arg in directive', () => {
     let server
 
     beforeAll(async () => {
@@ -806,14 +806,12 @@ describe('createLoaderForServer', () => {
       server.close()
     })
 
-    test('map -> extend -> post', async () => {
+    test('use dynamic args', async () => {
       let query = gql`
         {
           a @create(value: [{ b: 1 }, { b: 2 }]) {
-            b
-              @map(to: "{ body: { b }  }")
-              @extend(url: "http://localhost:2333/map-post")
-              @post
+            b @post(url: "http://localhost:2333/map-post", use: "{ body: { b }  }")
+            c: b
           }
         }
       `
@@ -821,9 +819,10 @@ describe('createLoaderForServer', () => {
       expect(result.errors).toEqual([])
       expect(Array.isArray(result.data.a)).toBe(true)
       result.data.a.forEach((data, i) => {
+        expect(data.c).toBe(i + 1)
         expect(data.b.url).toBe('/map-post')
         expect(data.b.options.method).toBe('POST')
-        expect(data.b.options.body).toBe(JSON.stringify({ b: i + 1 }))
+        expect(data.b.options.body).toBe(JSON.stringify({ b: data.c }))
       })
     })
   })
