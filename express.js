@@ -1,47 +1,72 @@
-const express = require('express')
+const { Router } = require('express')
 const bodyParser = require('body-parser')
 const createLoader = require('./src/createLoaderForServer')
-const expressPlayground = require('graphql-playground-middleware-express')
-  .default
+const { renderPlaygroundPage } = require('graphql-playground-html')
+const {
+  version
+} = require('graphql-playground-middleware-express/package.json')
 
-const PORT = 2333
+const defaultConfig = {
+  logs: true,
+  fetchTimeout: 3000,
+  variableTimeout: 3000,
+  playground: true,
+  endpoint: '/graphql'
+}
+module.exports = config => {
+  config = { ...defaultConfig, ...config }
 
-const app = express()
-const loader = createLoader()
+  let router = Router()
+  let loader = createLoader(config)
 
-app.post('/map-post', bodyParser.json(), async (req, res, next) => {
-  try {
-    res.json({
-      url: req.url,
-      options: { method: req.method, body: req.body, headers: req.headers }
+  router.post('/', bodyParser.json(), async (req, res, next) => {
+    let { query, variables } = req.body
+
+    // return empty schema for IntrospectionQuery
+    if (query.includes('query IntrospectionQuery')) {
+      return res.json({
+        errors: ['graphql-dynamic is schema-less, ignore this error']
+      })
+    }
+
+    try {
+      let context = {
+        ...req.graphqlContext,
+        headers: req.headers
+      }
+      let { errors, logs, data } = await loader.load(
+        query,
+        variables,
+        context,
+        req.rootValue
+      )
+
+      if (config.logs !== false) {
+        res.json({ errors, logs, data })
+      } else {
+        res.json({ errors, data })
+      }
+    } catch (error) {
+      next(error)
+    }
+  })
+
+  if (config.playground !== false) {
+    let playgroundOptions = {
+      settings: {
+        'request.credentials': 'include',
+        'tracing.hideTracingResponse': true
+      },
+      ...config,
+      version: version,
+      endpoint: config.endpoint
+    }
+    router.get('/', (req, res) => {
+      let playground = renderPlaygroundPage(playgroundOptions)
+      res.setHeader('Content-Type', 'text/html')
+      res.end(playground)
     })
-  } catch (error) {
-    next(error)
   }
-})
 
-app.get('/graphql', expressPlayground({ endpoint: '/graphql' }))
-app.post('/graphql', bodyParser.json(), async (req, res, next) => {
-  let { query, variables } = req.body
-  if (query.includes('query IntrospectionQuery')) {
-    return res.json({ data: { __schema: { types: [] } } })
-  }
-  try {
-    let headers = req.headers
-    let result = await loader.load(query, variables, { headers })
-    res.json(result)
-  } catch (error) {
-    console.log('error', error)
-    next(error)
-  }
-})
-
-app.use((req, res) => {
-  res.send('404')
-})
-
-app.listen(PORT)
-
-console.log(
-  `Serving the GraphQL Playground on http://localhost:${PORT}/playground`
-)
+  return router
+}

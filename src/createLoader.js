@@ -20,7 +20,8 @@ const builtInMiddlewares = [
 ]
 
 const defaultConfig = {
-	variableTimeout: 3000
+	variableTimeout: 3000,
+	fetchTimeout: 3000,
 }
 
 const createLoader = config => {

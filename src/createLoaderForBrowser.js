@@ -21,7 +21,7 @@ module.exports = (config = {}) => {
   loader.use(
     attach('fetch', fetch),
     handleLogFetch,
-    handleFetchTimeout(config.timeout)
+    handleFetchTimeout(config.fetchTimeout)
   )
   loader.use(
     createFunction,
