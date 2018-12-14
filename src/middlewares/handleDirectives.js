@@ -51,7 +51,7 @@ const resolveArgs = (args, ctx) => {
   }
 
   let { code, context } = use
-  let f = ctx.createFunction(code)
+  let f = ctx.createFunction(code, '$item')
 
   if (isPlainObject(ctx.result)) {
     context = { ...ctx.result, ...rest, ...context }
@@ -59,7 +59,7 @@ const resolveArgs = (args, ctx) => {
     context = { [ctx.fieldName]: ctx.result, ...rest, ...context }
   }
 
-  return { ...rest, ...f(context) }
+  return { ...rest, ...f(context, ctx.result) }
 }
 
 module.exports = handleDirectives

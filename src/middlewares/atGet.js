@@ -1,5 +1,6 @@
 const URL = require('url')
 const querystring = require('querystring')
+const isPlainObject = require('is-plain-object')
 const { createFetch } = require('./atFetch')
 
 const atGet = (ctx, next) => {
@@ -11,7 +12,7 @@ const createGet = ctx => params => {
   let { url, query, options, ...rest } = params
   let urlObj
 
-  if (typeof url === 'object') {
+  if (isPlainObject(url)) {
     urlObj = url
   } else if (typeof url == 'string') {
     urlObj = URL.parse(url)

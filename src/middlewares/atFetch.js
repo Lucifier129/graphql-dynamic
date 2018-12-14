@@ -1,5 +1,6 @@
 const URL = require('url')
 const { fromEntries } = require('../util')
+const isPlainObject = require('is-plain-object')
 
 const atFetch = (ctx, next) => {
 	ctx.directive('fetch', createFetch(ctx))
@@ -14,7 +15,7 @@ const createFetch = ctx => async params => {
 	// handle url
 	let url = params.url
 
-	if (typeof url === 'object') {
+	if (isPlainObject(url)) {
 		url = URL.format(url)
 	}
 

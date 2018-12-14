@@ -1,3 +1,5 @@
+const isPlainObject = require('is-plain-object')
+
 const entries = obj => {
 	return Object.entries(obj)
 }
@@ -23,7 +25,7 @@ const getValue = obj => {
 	if (Array.isArray(obj)) {
 		return getArray(obj)
 	}
-	if (typeof obj === 'object') {
+	if (isPlainObject(obj)) {
 		return getObject(obj)
 	}
 	return obj

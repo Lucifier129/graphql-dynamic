@@ -1,6 +1,6 @@
 {
   "name": "graphql-dynamic",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "dynamic, schema-less, directive-drive Graphql",
   "main": "src/createLoaderForServer",
   "browser": "src/createLoaderForBrowser",
@@ -8,6 +8,7 @@
     "test": "jest --verbose"
   },
   "files": [
+    "express",
     "src",
     "LICENSE",
     "README.md"
@@ -16,7 +17,10 @@
     "type": "git",
     "url": "git+https://github.com/Lucifier129/graphql-dynamic.git"
   },
-  "keywords": [],
+  "keywords": [
+    "graphql",
+    "schema-less"
+  ],
   "author": "Jade Gu",
   "license": "ISC",
   "bugs": {
@@ -31,6 +35,7 @@
     "graphql-playground-html": "^1.6.6",
     "graphql-playground-middleware-express": "^1.7.8",
     "graphql-tag": "^2.10.0",
+    "is-plain-object": "^2.0.4",
     "isomorphic-fetch": "^2.2.1",
     "koa-compose": "^4.1.0",
     "querystring": "^0.2.0",

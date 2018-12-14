@@ -3,70 +3,75 @@ const bodyParser = require('body-parser')
 const createLoader = require('./src/createLoaderForServer')
 const { renderPlaygroundPage } = require('graphql-playground-html')
 const {
-  version
+	version
 } = require('graphql-playground-middleware-express/package.json')
 
 const defaultConfig = {
-  logs: true,
-  fetchTimeout: 3000,
-  variableTimeout: 3000,
-  playground: true,
-  endpoint: '/graphql'
+	logs: true,
+	fetchTimeout: 3000,
+	variableTimeout: 3000,
+	playground: true,
+	endpoint: '/graphql'
 }
 module.exports = config => {
-  config = { ...defaultConfig, ...config }
+	config = { ...defaultConfig, ...config }
 
-  let router = Router()
-  let loader = createLoader(config)
+	let router = Router()
+	let loader = createLoader(config)
+	router.loader = loader
 
-  router.post('/', bodyParser.json(), async (req, res, next) => {
-    let { query, variables } = req.body
+	router.post('/', bodyParser.json(), async (req, res, next) => {
+		let { query, variables, options } = req.body
 
-    // return empty schema for IntrospectionQuery
-    if (query.includes('query IntrospectionQuery')) {
-      return res.json({
-        errors: ['graphql-dynamic is schema-less, ignore this error']
-      })
-    }
+		// return empty schema for IntrospectionQuery
+		if (query.includes('query IntrospectionQuery')) {
+			return res.json({
+				errors: ['graphql-dynamic is schema-less, ignore this error']
+			})
+		}
 
-    try {
-      let context = {
-        ...req.graphqlContext,
-        headers: req.headers
-      }
-      let { errors, logs, data } = await loader.load(
-        query,
-        variables,
-        context,
-        req.rootValue
-      )
+		try {
+			let context = {
+				req: req,
+				res: res,
+				headers: req.headers,
+				...req.graphqlContext,
+				...options
+			}
+			let { errors, logs, data } = await loader.load(
+				query,
+				variables,
+				context,
+				req.rootValue
+			)
 
-      if (config.logs !== false) {
-        res.json({ errors, logs, data })
-      } else {
-        res.json({ errors, data })
-      }
-    } catch (error) {
-      next(error)
-    }
-  })
+			if (config.logs !== false) {
+				res.json({ errors, logs, data })
+			} else {
+				res.json({ errors, data })
+			}
+		} catch (error) {
+			next(error)
+		}
+	})
 
-  if (config.playground !== false) {
-    let playgroundOptions = {
-      settings: {
-        'request.credentials': 'include',
-        'tracing.hideTracingResponse': true
-      },
-      ...config,
-      version: version,
-      endpoint: config.endpoint
-    }
-    router.get('/', (req, res) => {
-      let playground = renderPlaygroundPage(playgroundOptions)
-      res.setHeader('Content-Type', 'text/html')
-      res.end(playground)
-    })
-  }
+	if (config.playground !== false) {
+		let playgroundOptions = {
+			settings: {
+				'editor.theme': 'light',
+				'request.credentials': 'include',
+				'tracing.hideTracingResponse': true,
+				...config.playground
+			},
+			version: version,
+			endpoint: config.endpoint
+		}
+		router.get('/', (req, res) => {
+			let playground = renderPlaygroundPage(playgroundOptions)
+			res.setHeader('Content-Type', 'text/html')
+			res.end(playground)
+		})
+	}
 
-  return router
+	return router
 }
