@@ -1,14 +1,15 @@
 {
   "name": "graphql-dynamic",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "dynamic, schema-less, directive-drive Graphql",
   "main": "src/createLoaderForServer",
   "browser": "src/createLoaderForBrowser",
   "scripts": {
-    "test": "jest --verbose"
+    "test": "jest --verbose",
+    "prepublish": "npm run test"
   },
   "files": [
-    "express",
+    "express.js",
     "src",
     "LICENSE",
     "README.md"
