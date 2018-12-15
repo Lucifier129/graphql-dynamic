@@ -48,7 +48,7 @@ const resolveArgs = (args, key, ctx) => {
   let f = ctx.createFunction(code, '$value')
   let context = createContext(rest, ctx.result, ctx.fieldName)
 
-  return { ...context, ...f(context, ctx.result) }
+  return { ...rest, ...f(context, ctx.result) }
 }
 
 module.exports = handleDirectives
