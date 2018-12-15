@@ -1,6 +1,6 @@
 {
   "name": "graphql-dynamic",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "dynamic, schema-less, directive-drive Graphql",
   "main": "src/createLoaderForServer",
   "browser": "src/createLoaderForBrowser",
@@ -10,6 +10,7 @@
   },
   "files": [
     "express.js",
+    "tag.js",
     "src",
     "LICENSE",
     "README.md"
@@ -35,15 +36,16 @@
     "graphql-anywhere": "^4.1.23",
     "graphql-playground-html": "^1.6.6",
     "graphql-playground-middleware-express": "^1.7.8",
-    "graphql-tag": "^2.10.0",
     "is-plain-object": "^2.0.4",
     "isomorphic-fetch": "^2.2.1",
     "koa-compose": "^4.1.0",
+    "lru-cache": "^5.1.1",
     "querystring": "^0.2.0",
     "url": "^0.11.0",
     "vm-browserify": "^1.1.0"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
     "jest": "^23.6.0"
   }
 }

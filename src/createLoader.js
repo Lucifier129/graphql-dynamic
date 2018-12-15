@@ -1,5 +1,5 @@
 const { graphql } = require('graphql-anywhere/lib/async')
-const gql = require('graphql-tag')
+const gql = require('./graphql-tag')
 const compose = require('koa-compose')
 const fetch = require('isomorphic-fetch')
 const { getMessage } = require('./util')

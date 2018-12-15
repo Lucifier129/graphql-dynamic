@@ -1,5 +1,5 @@
 const createLoader = require('../src/createLoaderForServer')
-const gql = require('graphql-tag')
+const gql = require('../src/graphql-tag')
 const http = require('http')
 
 let createServer = handler => {

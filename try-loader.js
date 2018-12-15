@@ -1,4 +1,4 @@
-const gql = require('graphql-tag')
+const gql = require('./src/graphql-tag')
 const createLoader = require('./src/createLoaderForServer')
 const loader = createLoader()
 
