@@ -225,9 +225,7 @@ describe('createLoaderForServer', () => {
     test('merge context into @map', async () => {
       let query = gql`
         {
-          a
-            @create(value: { b: 1, c: 2 })
-            @map(to: "{...this}", context: { d: 3, e: 4 })
+          a @create(value: { b: 1, c: 2 }) @map(to: "{...this}", d: 3, e: 4)
         }
       `
       let result = await loader.load(query)
@@ -245,7 +243,7 @@ describe('createLoaderForServer', () => {
     test('access meta variables', async () => {
       let query = gql`
         {
-          a @create(value: 1) @map(to: "$item")
+          a @create(value: 1) @map(to: "$value")
           b @create(value: 2) @map(to: "$index")
           c
             @create(value: [{ d: 1 }, { d: 2 }])
@@ -318,8 +316,8 @@ describe('createLoaderForServer', () => {
       let query = gql`
         {
           a @create(value: { b: 1, c: 2 }) {
-            b @filter(if: "test", context: { test: true })
-            c @filter(if: "test", context: { test: false })
+            b @filter(if: "test", test: true)
+            c @filter(if: "test", test: false)
           }
         }
       `
@@ -335,7 +333,7 @@ describe('createLoaderForServer', () => {
     test('access meta variables', async () => {
       let query = gql`
         {
-          a @create(value: 1) @filter(if: "$item === 1")
+          a @create(value: 1) @filter(if: "$value === 1")
           b @create(value: 2) @filter(if: "$index !== 0")
           c @create(value: [{ d: 1 }, { d: 2 }]) @filter(if: "$list.length")
         }
@@ -787,7 +785,7 @@ describe('createLoaderForServer', () => {
     })
   })
 
-  describe('\'use\' arg in directive', () => {
+  describe("'use' arg in directive", () => {
     let server
 
     beforeAll(async () => {
@@ -810,7 +808,12 @@ describe('createLoaderForServer', () => {
       let query = gql`
         {
           a @create(value: [{ b: 1 }, { b: 2 }]) {
-            b @post(url: "http://localhost:2333/map-post", use: "{ body: { b }  }")
+            b
+              @post(
+                url: "http://localhost:2333/map-post"
+                test: 1
+                use: "{ body: { b, url, test }  }"
+              )
             c: b
           }
         }
@@ -822,7 +825,13 @@ describe('createLoaderForServer', () => {
         expect(data.c).toBe(i + 1)
         expect(data.b.url).toBe('/map-post')
         expect(data.b.options.method).toBe('POST')
-        expect(data.b.options.body).toBe(JSON.stringify({ b: data.c }))
+        expect(data.b.options.body).toBe(
+          JSON.stringify({
+            b: data.c,
+            url: 'http://localhost:2333/map-post',
+            test: 1
+          })
+        )
       })
     })
   })

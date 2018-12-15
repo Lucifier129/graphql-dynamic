@@ -1,5 +1,4 @@
-const { isThenable } = require('../util')
-const isPlainObject = require('is-plain-object')
+const { isThenable, createContext } = require('../util')
 
 const handleDirectives = async (ctx, next) => {
   let directiveHandlers = (ctx.directiveHandlers = {})
@@ -23,7 +22,7 @@ const executeDirectives = async (ctx, directives) => {
     let handler = ctx.directiveHandlers[key]
 
     if (typeof handler === 'function') {
-      let args = resolveArgs(directives[key], ctx)
+      let args = resolveArgs(directives[key], key, ctx)
       let result = handler(args || {}, i, directiveKeys)
 
       if (isThenable(result)) {
@@ -35,31 +34,21 @@ const executeDirectives = async (ctx, directives) => {
   }
 }
 
-const resolveArgs = (args, ctx) => {
+const resolveArgs = (args, key, ctx) => {
   if (!args || !args.use) {
     return args
   }
 
-  let { use, ...rest } = args
+  let { use: code, ...rest } = args
 
-  if (typeof use === 'string') {
-    use = { code: use }
+  if (typeof code !== 'string') {
+    throw new Error(`\`use\` must be a string in @${key}, instead of ${code}`)
   }
 
-  if (!isPlainObject(use)) {
-    return args
-  }
+  let f = ctx.createFunction(code, '$value')
+  let context = createContext(rest, ctx.result, ctx.fieldName)
 
-  let { code, context } = use
-  let f = ctx.createFunction(code, '$item')
-
-  if (isPlainObject(ctx.result)) {
-    context = { ...ctx.result, ...rest, ...context }
-  } else {
-    context = { [ctx.fieldName]: ctx.result, ...rest, ...context }
-  }
-
-  return { ...rest, ...f(context, ctx.result) }
+  return { ...context, ...f(context, ctx.result) }
 }
 
 module.exports = handleDirectives

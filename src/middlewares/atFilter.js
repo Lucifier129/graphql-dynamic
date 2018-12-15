@@ -1,53 +1,48 @@
-const isPlainObject = require('is-plain-object')
+const { createContext } = require('../util')
 
 module.exports = (ctx, next) => {
-	let handleFilter = params => {
-		if (typeof ctx.createFunction !== 'function') {
-			throw new Error(`ctx.createFunction is not a function in @filter`)
-		}
+  let handleFilter = params => {
+    if (typeof ctx.createFunction !== 'function') {
+      throw new Error(`ctx.createFunction is not a function in @filter`)
+    }
 
-		let result = ctx.result
+    let result = ctx.result
 
-		if (result == null) {
-			return
-		}
+    if (result == null) {
+      return
+    }
 
-		// if params.if is boolean, it will work like @include
-		if (typeof params.if === 'boolean') {
-			if (!params.if) {
-				ctx.result = undefined
-			}
-			return
-		}
+    // if params.if is boolean, it will work like @include
+    if (typeof params.if === 'boolean') {
+      if (!params.if) {
+        ctx.result = undefined
+      }
+      return
+    }
 
-		if (typeof params.if !== 'string') {
-			ctx.error(
-				`\`if\` in @filter should be a string of expresstion, instead of ${
-					params.if
-				}`
-			)
-			return
-		}
+    if (typeof params.if !== 'string') {
+      ctx.error(
+        `\`if\` in @filter should be a string of expresstion, instead of ${
+          params.if
+        }`
+      )
+      return
+    }
 
-		let isArray = Array.isArray(result)
-		let code = params.if
-		let filter = ctx.createFunction(code, '$item', '$index', '$list')
+    let isArray = Array.isArray(result)
+    let { if: code, ...rest } = params
+    let filter = ctx.createFunction(code, '$value', '$index', '$list')
 
-		result = isArray ? result : [result]
+    result = isArray ? result : [result]
 
-		result = result.filter((item, index, list) => {
-			let context
-			if (isPlainObject(item)) {
-				context = { ...item, ...params.context }
-			} else {
-				context = { [ctx.fieldName]: item, ...params.context }
-			}
-			return filter(context, item, index, list)
-		})
+    result = result.filter((item, index, list) => {
+      let context = createContext(rest, item, ctx.fieldName)
+      return filter(context, item, index, list)
+    })
 
-		ctx.result = isArray ? result : result[0]
-	}
+    ctx.result = isArray ? result : result[0]
+  }
 
-	ctx.directive('filter', handleFilter)
-	return next()
+  ctx.directive('filter', handleFilter)
+  return next()
 }
