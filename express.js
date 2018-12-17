@@ -67,7 +67,10 @@ module.exports = config => {
 			endpoint: config.endpoint
 		}
 		router.get('/', (req, res) => {
-			let playground = renderPlaygroundPage(playgroundOptions)
+			let playground = renderPlaygroundPage({
+				...playgroundOptions,
+				...req.graphqlPlaygroundOptions
+			})
 			res.setHeader('Content-Type', 'text/html')
 			res.end(playground)
 		})

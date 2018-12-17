@@ -23,7 +23,7 @@ const query = `
     test @create(value: 1)
   }
 `
-const result = await loader.load(query) // output: { test: 1 }
+const result = await loader.load(query) // output: { errors: [], infos: [], data: { test: 1 } }
 ```
 
 ## Directives
