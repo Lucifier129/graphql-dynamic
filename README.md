@@ -377,8 +377,19 @@ import createGraphql from 'graphql-dynamic/express'
 const express = require('express')
 const app = express()
 
+const playground = {
+	'general.betaUpdates': false,
+	'editor.cursorShape': 'line', // possible values: 'line', 'block', 'underline'
+	'editor.fontSize': 14,
+	'editor.fontFamily': `'Source Code Pro', 'Consolas', 'Inconsolata', 'Droid Sans Mono', 'Monaco', monospace`,
+	'editor.theme': 'light', // possible values: 'dark', 'light'
+	'editor.reuseHeaders': true, // new tab reuses headers from last tab
+	'request.credentials': 'omit', // possible values: 'omit', 'include', 'same-origin'
+	'tracing.hideTracingResponse': true
+}
+
 const endpoint = '/graphql'
-const router = createGraphql({ endpoint })
+const router = createGraphql({ endpoint, playground })
 app.use(endpoint, router)
 
 // router.loader 可以获取到 loader 对象
