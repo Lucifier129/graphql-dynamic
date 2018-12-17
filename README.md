@@ -11,7 +11,7 @@ dynamic, schema-less, directive-drive Graphql
 ## Usage
 
 ```shell
-npm install graphq-dynamic
+npm install graphql-dynamic
 ```
 
 ```javascript
