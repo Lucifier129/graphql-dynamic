@@ -31,13 +31,13 @@ module.exports = (ctx, next) => {
 
     let isArray = Array.isArray(result)
     let { if: code, ...rest } = params
-    let filter = ctx.createFunction(code, '$value', '$index', '$list')
+    let filter = ctx.createFunction(code, '$value', '$index', '$list', '$parent')
 
     result = isArray ? result : [result]
 
     result = result.filter((item, index, list) => {
       let context = createContext(rest, item, ctx.fieldName)
-      return filter(context, item, index, list)
+      return filter(context, item, index, list, ctx.rootValue)
     })
 
     ctx.result = isArray ? result : result[0]

@@ -18,6 +18,8 @@ const atMap = require('./middlewares/atMap')
 const atFetch = require('./middlewares/atFetch')
 const atGet = require('./middlewares/atGet')
 const atPost = require('./middlewares/atPost')
+const atGetAll = require('./middlewares/atGetAll')
+const atPostAll = require('./middlewares/atPostAll')
 const atExtend = require('./middlewares/atExtend')
 const atAppend = require('./middlewares/atAppend')
 const atPrepend = require('./middlewares/atPrepend')
@@ -37,6 +39,8 @@ const builtInMiddlewares = [
 	atFetch,
 	atGet,
 	atPost,
+	atGetAll,
+	atPostAll,
 	atExtend,
 	atAppend,
 	atPrepend

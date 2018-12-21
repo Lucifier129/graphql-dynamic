@@ -26,13 +26,13 @@ const createMap = ctx => params => {
   }
 
   let isArray = Array.isArray(result)
-  let map = ctx.createFunction(code, '$value', '$index', '$list')
+  let map = ctx.createFunction(code, '$value', '$index', '$list', '$parent')
 
   result = isArray ? result : [result]
 
   result = result.map((item, index, list) => {
     let context = createContext(rest, item, ctx.fieldName)
-    return map(context, item, index, list)
+    return map(context, item, index, list, ctx.rootValue)
   })
 
   ctx.result = isArray ? result : result[0]

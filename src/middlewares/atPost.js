@@ -2,7 +2,10 @@ const { createFetch } = require('./atFetch')
 const isPlainObject = require('is-plain-object')
 
 const atPost = (ctx, next) => {
-  ctx.directive('post', createPost(ctx))
+  ctx.directive('post', async params => {
+    let post = createPost(ctx)
+    ctx.result = await post(params)
+  })
   return next()
 }
 

@@ -4,7 +4,10 @@ const isPlainObject = require('is-plain-object')
 const { createFetch } = require('./atFetch')
 
 const atGet = (ctx, next) => {
-  ctx.directive('get', createGet(ctx))
+  ctx.directive('get', async params => {
+    let get = createGet(ctx)
+    ctx.result = await get(params)
+  })
   return next()
 }
 

@@ -248,6 +248,13 @@ describe('createLoaderForServer', () => {
           c
             @create(value: [{ d: 1 }, { d: 2 }])
             @map(to: "{ d: d * $index + $list.length } ")
+          f @create(value: { g: 1, h: 2 }) {
+            g @map(to: "$parent.g + $parent.h")
+            h @map(to: "$parent.g - $parent.h")
+          }
+          i @create(value: [{ j: 1}, { j: 2}]) {
+            j @map(to: "$parent")
+          }
         }
       `
       let result = await loader.load(query)
@@ -262,7 +269,12 @@ describe('createLoaderForServer', () => {
           {
             d: 4
           }
-        ]
+        ],
+        f: {
+          g: 3,
+          h: -1
+        },
+        i: [{ j: { j: 1 } }, { j: { j: 2 } }]
       })
     })
   })
@@ -336,21 +348,26 @@ describe('createLoaderForServer', () => {
           a @create(value: 1) @filter(if: "$value === 1")
           b @create(value: 2) @filter(if: "$index !== 0")
           c @create(value: [{ d: 1 }, { d: 2 }]) @filter(if: "$list.length")
+          f @create(value: [{ g: 1, h: 2 }, { g: 0, h: 3 }]) {
+            g
+            h @filter(if: "$parent.g > 0")
+          }
         }
       `
       let result = await loader.load(query)
       expect(result.errors).toEqual([])
       expect(result.data).toEqual({
-        a: 1,
-        c: [
-          {
-            d: 1
-          },
-          {
-            d: 2
-          }
-        ]
-      })
+				a: 1,
+				c: [
+					{
+						d: 1
+					},
+					{
+						d: 2
+					}
+				],
+				f: [{ g: 1, h: 2 }, { g: 0 }]
+			})
     })
   })
 
@@ -522,6 +539,27 @@ describe('createLoaderForServer', () => {
       expect(result.data.a.options.headers['cookie']).toBe('a=1&b=2')
     })
 
+    test('getAll data', async () => {
+      let query = gql`
+        {
+          a
+            @getAll(
+              url: "http://localhost:2333/get"
+              querys: [{ a: 1, b: 2 }, { a: 2, b: 3 }]
+              options: { headers: [["Cookie", "a=1&b=2"]] }
+            )
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(Array.isArray(result.data.a)).toBe(true)
+      result.data.a.forEach((data, i) => {
+        expect(data.url).toEqual(`/get?a=${i + 1}&b=${i + 2}`)
+        expect(data.options.method).toEqual('GET')
+        expect(data.options.headers['cookie']).toBe('a=1&b=2')
+      })
+    })
+
     test('set responseType to text', async () => {
       let query = gql`
         {
@@ -577,6 +615,25 @@ describe('createLoaderForServer', () => {
         'application/json'
       )
       expect(result.data.a.options.body).toEqual(JSON.stringify({ a: 1, b: 2 }))
+    })
+
+    test('postAll data', async () => {
+      let query = gql`
+        {
+          a @postAll(url: "http://localhost:2333/post", bodys: [{ a: 1, b: 2 }, { a: 2, b: 3 }])
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(Array.isArray(result.data.a)).toBe(true)
+      result.data.a.forEach((data, i) => {
+        expect(data.url).toEqual('/post')
+        expect(data.options.method).toEqual('POST')
+        expect(data.options.headers['content-type']).toBe(
+          'application/json'
+        )
+        expect(data.options.body).toEqual(JSON.stringify({ a: i + 1, b: i + 2 }))
+      })
     })
 
     test('post data multiple times', async () => {
