@@ -77,10 +77,10 @@ async function executeSelectionSet(selectionSet, rootValue, execContext) {
       const resultFieldKey = resultKeyNameFromField(selection)
 
       if (fieldResult !== undefined) {
-        if (result[resultFieldKey] === undefined) {
-          result[resultFieldKey] = fieldResult
-        } else {
-          merge(result[resultFieldKey], fieldResult)
+        return {
+          type: 'field',
+          key: resultFieldKey,
+          value: fieldResult
         }
       }
 
@@ -109,11 +109,30 @@ async function executeSelectionSet(selectionSet, rootValue, execContext) {
         execContext
       )
 
-      merge(result, fragmentResult)
+      return {
+        type: 'fragment',
+        fragment: fragmentResult
+      }
     }
   }
 
-  await Promise.all(selectionSet.selections.map(execute))
+  let executedList = await Promise.all(selectionSet.selections.map(execute))
+
+  executedList.forEach(item => {
+    if (!item) return
+
+    if (item.type === 'field') {
+      if (result[item.key] === undefined) {
+        result[item.key] = item.value
+      } else {
+        merge(result[item.key], item.value)
+      }
+    }
+
+    if (item.type === 'fragment') {
+      merge(result, item.fragment)
+    }
+  })
 
   if (execContext.resultMapper) {
     return execContext.resultMapper(result, rootValue)
