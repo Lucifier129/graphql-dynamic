@@ -31,7 +31,7 @@ function graphql(
   document,
   rootValue,
   contextValue,
-  variableValues,
+  variables,
   execOptions = {}
 ) {
   const mainDefinition = getMainDefinition(document)
@@ -47,7 +47,7 @@ function graphql(
   const execContext = {
     fragmentMap,
     contextValue,
-    variableValues,
+    variables,
     resultMapper,
     resolver,
     fragmentMatcher
@@ -61,9 +61,7 @@ function graphql(
 }
 
 async function executeSelectionSet(selectionSet, rootValue, execContext) {
-  const { fragmentMap, contextValue, variableValues: variables } = execContext
-
-  const result = {}
+  const { fragmentMap, contextValue, variables } = execContext
 
   const execute = async selection => {
     if (!shouldInclude(selection, variables)) {
@@ -76,15 +74,15 @@ async function executeSelectionSet(selectionSet, rootValue, execContext) {
 
       const resultFieldKey = resultKeyNameFromField(selection)
 
-      if (fieldResult !== undefined) {
-        return {
-          type: 'field',
-          key: resultFieldKey,
-          value: fieldResult
-        }
+      if (fieldResult === undefined) {
+        return
       }
 
-      return
+      return {
+        type: 'field',
+        key: resultFieldKey,
+        value: fieldResult
+      }
     }
 
     let fragment
@@ -116,23 +114,9 @@ async function executeSelectionSet(selectionSet, rootValue, execContext) {
     }
   }
 
-  let executedList = await Promise.all(selectionSet.selections.map(execute))
-
-  executedList.forEach(item => {
-    if (!item) return
-
-    if (item.type === 'field') {
-      if (result[item.key] === undefined) {
-        result[item.key] = item.value
-      } else {
-        merge(result[item.key], item.value)
-      }
-    }
-
-    if (item.type === 'fragment') {
-      merge(result, item.fragment)
-    }
-  })
+  const selections = selectionSet.selections
+  const selectionResults = await Promise.all(selections.map(execute))
+  const result = selectionResults.reduce(mergeSelectionResult, {})
 
   if (execContext.resultMapper) {
     return execContext.resultMapper(result, rootValue)
@@ -141,8 +125,26 @@ async function executeSelectionSet(selectionSet, rootValue, execContext) {
   return result
 }
 
+function mergeSelectionResult(result, item) {
+  if (!item) return result
+
+  if (item.type === 'field') {
+    if (result[item.key] === undefined) {
+      result[item.key] = item.value
+    } else {
+      merge(result[item.key], item.value)
+    }
+  }
+
+  if (item.type === 'fragment') {
+    merge(result, item.fragment)
+  }
+
+  return result
+}
+
 async function executeField(field, rootValue, execContext) {
-  const { variableValues: variables, contextValue, resolver } = execContext
+  const { variables, contextValue, resolver } = execContext
 
   const fieldName = field.name.value
   const args = argumentsObjectFromField(field, variables)
@@ -162,36 +164,21 @@ async function executeField(field, rootValue, execContext) {
 
   // From here down, the field has a selection set, which means it's trying to
   // query a GraphQLObjectType
+  return executeObjectSelection(field, result, execContext)
+}
+
+function executeObjectSelection(field, result, execContext) {
   if (result == null) {
-    // Basically any field in a GraphQL response can be null, or missing
     return result
   }
 
   if (Array.isArray(result)) {
-    return executeSubSelectedArray(field, result, execContext)
+    return Promise.all(
+      result.map(item => executeObjectSelection(field, item, execContext))
+    )
   }
 
-  // Returned value is an object, and the query has a sub-selection. Recurse.
   return executeSelectionSet(field.selectionSet, result, execContext)
-}
-
-function executeSubSelectedArray(field, result, execContext) {
-  return Promise.all(
-    result.map(item => {
-      // null value in array
-      if (item === null) {
-        return null
-      }
-
-      // This is a nested array, recurse
-      if (Array.isArray(item)) {
-        return executeSubSelectedArray(field, item, execContext)
-      }
-
-      // This is an object, run the selection set on it
-      return executeSelectionSet(field.selectionSet, item, execContext)
-    })
-  )
 }
 
 module.exports = { graphql }
