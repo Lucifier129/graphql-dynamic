@@ -30,10 +30,10 @@
   },
   "homepage": "https://github.com/Lucifier129/graphql-dynamic#readme",
   "dependencies": {
+    "apollo-utilities": "^1.0.27",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "graphql": "^14.0.2",
-    "graphql-anywhere": "^4.1.23",
     "graphql-playground-html": "^1.6.6",
     "graphql-playground-middleware-express": "^1.7.8",
     "is-plain-object": "^2.0.4",

@@ -1,9 +1,12 @@
-const { graphql } = require('graphql-anywhere/lib/async')
-const gql = require('./graphql-tag')
 const compose = require('koa-compose')
 const fetch = require('isomorphic-fetch')
+
+const { graphql } = require('./graphql-anywhere')
+const gql = require('./graphql-tag')
+
 const { getMessage } = require('./util')
 const createVariables = require('./createVariables')
+
 const resolveDynamicArgs = require('./middlewares/resolveDynamicArgs')
 const handleErrors = require('./middlewares/handleErrors')
 const handleLogs = require('./middlewares/handleLogs')
