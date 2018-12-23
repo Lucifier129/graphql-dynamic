@@ -74,16 +74,7 @@ const getMessage = (error, dev = false) => {
   return error + ''
 }
 
-const createContext = (context, value, fieldName) => {
-  if (isPlainObject(value)) {
-    return { ...value, ...context }
-  } else {
-    return { [fieldName]: value, ...context }
-  }
-}
-
 module.exports = {
-  createContext,
   getMessage,
   entries,
   fromEntries,

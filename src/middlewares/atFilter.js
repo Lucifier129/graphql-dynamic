@@ -8,10 +8,6 @@ module.exports = (ctx, next) => {
 
     let result = ctx.result
 
-    if (result == null) {
-      return
-    }
-
     // if params.if is boolean, it will work like @include
     if (typeof params.if === 'boolean') {
       if (!params.if) {

@@ -12,10 +12,6 @@ const createMap = ctx => async params => {
 
   let result = ctx.result
 
-  if (result == null) {
-    return
-  }
-
   let { to: code, ...rest } = params
 
   if (typeof code !== 'string') {

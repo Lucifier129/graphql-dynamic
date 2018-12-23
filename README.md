@@ -194,7 +194,7 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 - 如果当前字段的值不是对象或数组，则 to 参数里可以用当前字段的名字访问它的值。
 - 如果当前字段的值是对象，则 to 参数里可以用对象里的 key 去访问对应的 value 值，通过 $value 元参数访问整个对象，通过 this 关键字访问$value + context 的 mergedObject 合并对象。
 - 如果当前字段的值是数组，则循环这个数组，按上面的规则读取值。
-- 可以用过`元参数` $value|$index|\$list 分别访问整个字段值、数组索引和数组本身。
+- 可以用过`元参数` $value|$index|$list 分别访问整个字段值、数组索引和数组本身。
 
 ```graphql
 {
@@ -221,7 +221,7 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 	a @create(value: 1) @filter(if: "a > 1") # a 不会被输出
 	b @create(value: 1) @filter(if: "b === 1") # b 输出为 1
 	objcet @create(value: { a: 1, b: 2 }) @filter(if: "b <= n", n: 1) # object 最终为 { a: 1, b: 2 }
-	array @create(value: [{ a: 1 }, { a: 2 }]) @map(to: "a < 2") # array 最终为 [{ a: 1 }]
+	array @create(value: [{ a: 1 }, { a: 2 }]) @filter(to: "a < 2") # array 最终为 [{ a: 1 }]
 }
 ```
 

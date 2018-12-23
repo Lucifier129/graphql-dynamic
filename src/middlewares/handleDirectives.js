@@ -46,7 +46,13 @@ const resolveArgs = (args, key, ctx) => {
   }
 
   let f = ctx.createFunction(code, '$value')
-  let context = createContext(rest, ctx.result, ctx.fieldName)
+  let context = {
+    ...ctx.rootValue,
+    [ctx.fieldName]: ctx.result,
+    [ctx.info.resultKey]: ctx.result,
+    ...ctx.result,
+    ...rest
+  }
 
   return { ...rest, ...f(context, ctx.result) }
 }
