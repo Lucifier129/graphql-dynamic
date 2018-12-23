@@ -36,7 +36,13 @@ module.exports = (ctx, next) => {
     result = isArray ? result : [result]
 
     result = result.filter((item, index, list) => {
-      let context = createContext(rest, item, ctx.fieldName)
+      let context = {
+        ...ctx.rootValue,
+        [ctx.fieldName]: item,
+        [ctx.info.resultKey]: item,
+        ...item,
+        ...rest
+      }
       return filter(context, item, index, list, ctx.rootValue)
     })
 
