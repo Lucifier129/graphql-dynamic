@@ -28,7 +28,9 @@ module.exports = config => {
 		// return empty schema for IntrospectionQuery
 		if (query.includes('query IntrospectionQuery')) {
 			return res.json({
-				errors: ['graphql-dynamic is schema-less, ignore this error']
+				errors: [{
+					message: 'graphql-dynamic is schema-less, ignore this error'
+				}]
 			})
 		}
 
@@ -97,6 +99,10 @@ module.exports = config => {
 				result = await loadList({ querys, options, req, res })
 			} else {
 				result = await load({ query, variables, options, req, res })
+			}
+
+			if (res.finished) {
+				return
 			}
 
 			let { errors, logs, data } = result
