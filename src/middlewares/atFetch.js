@@ -7,7 +7,7 @@ module.exports = (ctx, next) => {
 		throw new Error(`ctx.fetch is not a function`)
 	}
 
-	let fetch = ctx.fetch
+	ctx.originalFetch = ctx.fetch
 	ctx.fetch = async params => {
 		// handle url
 		let url = params.url
@@ -45,7 +45,7 @@ module.exports = (ctx, next) => {
 		}
 	
 		// handle response type
-		let response = await fetch(url, options)
+		let response = await ctx.originalFetch(url, options)
 		let type = params.responseType || 'json'
 	
 		if (typeof response[type] !== 'function') {
