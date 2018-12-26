@@ -14,6 +14,8 @@ const createFunction = require('./middlewares/createFunction')
 const handleDirectives = require('./middlewares/handleDirectives')
 const handleLogFetch = require('./middlewares/handleLogFetch')
 const handleFetchTimeout = require('./middlewares/handleFetchTimeout')
+const atSkip = require('./middlewares/atSkip')
+const atInclude = require('./middlewares/atInclude')
 const atVariable = require('./middlewares/atVariable')
 const atCreate = require('./middlewares/atCreate')
 const atFilter = require('./middlewares/atFilter')
@@ -35,6 +37,9 @@ const builtInMiddlewares = [
 	handleDirectives,
 	handleLogFetch,
 	handleFetchTimeout,
+
+	atSkip,
+	atInclude,
 	atCreate,
 	atVariable,
 	atFilter,

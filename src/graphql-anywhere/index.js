@@ -3,7 +3,6 @@ const {
   getMainDefinition,
   getFragmentDefinitions,
   createFragmentMap,
-  shouldInclude,
   getDirectiveInfoFromField,
   isField,
   isInlineFragment,
@@ -11,20 +10,10 @@ const {
   argumentsObjectFromField
 } = require('apollo-utilities')
 
-const hasOwn = Object.prototype.hasOwnProperty
-
-function merge(dest, src) {
-  if (src !== null && typeof src === 'object') {
-    Object.keys(src).forEach(key => {
-      const srcVal = src[key]
-      if (!hasOwn.call(dest, key)) {
-        dest[key] = srcVal
-      } else {
-        merge(dest[key], srcVal)
-      }
-    })
-  }
-}
+const {
+  merge,
+  getDirectivesFromField
+} = require('./util')
 
 function graphql(
   resolver,
@@ -64,11 +53,6 @@ async function executeSelectionSet(selectionSet, rootValue, execContext) {
   const { fragmentMap, contextValue, variables } = execContext
 
   const execute = async selection => {
-    if (!shouldInclude(selection, variables)) {
-      // Skip this entirely
-      return
-    }
-
     if (isField(selection)) {
       const fieldResult = await executeField(selection, rootValue, execContext)
 
@@ -152,7 +136,7 @@ async function executeField(field, rootValue, execContext) {
   const info = {
     isLeaf: !field.selectionSet,
     resultKey: resultKeyNameFromField(field),
-    directives: getDirectiveInfoFromField(field, variables)
+    directives: getDirectivesFromField(field, variables)
   }
 
   const result = await resolver(fieldName, rootValue, args, contextValue, info)

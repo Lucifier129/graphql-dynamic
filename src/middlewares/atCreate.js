@@ -1,9 +1,8 @@
 module.exports = (ctx, next) => {
-  let handleCreate = (params, index) => {
-    if (index !== 0) {
-      throw new Error(`@create should be the first directive`)
+  let handleCreate = (params) => {
+    if (params) {
+      ctx.result = params.value
     }
-    ctx.result = params.value
   }
 
   ctx.directive('create', handleCreate)

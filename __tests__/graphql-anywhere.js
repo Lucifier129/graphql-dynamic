@@ -197,30 +197,31 @@ const execute = (graphql, r) => () => {
     })
   })
 
-  it('can use skip and include', async () => {
-    const resolver = fieldName => r(fieldName)
+  // implemented by user side
+  // it('can use skip and include', async () => {
+  //   const resolver = fieldName => r(fieldName)
 
-    const query = gql`
-      {
-        a {
-          b @skip(if: true)
-          c @include(if: true)
-          d @skip(if: false)
-          e @include(if: false)
-        }
-      }
-    `
+  //   const query = gql`
+  //     {
+  //       a {
+  //         b @skip(if: true)
+  //         c @include(if: true)
+  //         d @skip(if: false)
+  //         e @include(if: false)
+  //       }
+  //     }
+  //   `
 
-    const result = await graphql(resolver, query, null, null, null)
+  //   const result = await graphql(resolver, query, null, null, null)
 
-    expect(result).toEqual({
-      a: {
-        c: 'c',
+  //   expect(result).toEqual({
+  //     a: {
+  //       c: 'c',
 
-        d: 'd'
-      }
-    })
-  })
+  //       d: 'd'
+  //     }
+  //   })
+  // })
 
   it('can use inline and named fragments', async () => {
     const resolver = fieldName => r(fieldName)
@@ -457,11 +458,13 @@ const execute = (graphql, r) => () => {
       },
 
       hasDirective: {
-        directives: {
-          skip: { if: false },
-
-          otherDirective: { arg: 'argument' }
-        },
+        directives: [{
+          name: 'skip',
+          args: { if: false }
+        }, {
+          name: 'otherDirective',
+          args: { arg: 'argument' }
+        }],
 
         isLeaf: true,
 

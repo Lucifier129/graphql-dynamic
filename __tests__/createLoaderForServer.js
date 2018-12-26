@@ -24,11 +24,33 @@ let readBody = req => {
 describe('createLoaderForServer', () => {
   let loader
   beforeEach(() => {
-    loader = createLoader()
+    loader = createLoader({ dev: true })
   })
 
   afterEach(() => {
     loader = null
+  })
+
+  it('can use skip and include', async () => {
+    const query = gql`
+      {
+        a {
+          b @create(value: "b") @skip(if: true)
+          c @create(value: "c") @include(if: true)
+          d @create(value: "d") @skip(if: false)
+          e @create(value: "e") @include(if: false)
+        }
+      }
+    `
+
+    const result = await loader.load(query)
+    expect(result.errors).toEqual([])
+    expect(result.data).toEqual({
+      a: {
+        c: 'c',
+        d: 'd'
+      }
+    })
   })
 
   describe('@create', () => {
@@ -250,6 +272,21 @@ describe('createLoaderForServer', () => {
         },
         i: [{ j: { j: 1 } }, { j: { j: 2 } }]
       })
+    })
+
+    test('use multiple time', async () => {
+      let query = gql`
+        {
+          a
+            @create(value: { b: { c: { d: 123 } } })
+            @map(to: "b")
+            @map(to: "c")
+            @map(to: "d")
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({ a: 123 })
     })
   })
 
