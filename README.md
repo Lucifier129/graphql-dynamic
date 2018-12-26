@@ -1,6 +1,6 @@
 # graphql-dynamic
 
-dynamic, schema-less, directive-drive Graphql
+dynamic, schema-less, directive-driven Graphql
 
 # Table of Contents 👇
 
