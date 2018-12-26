@@ -74,7 +74,34 @@ const getMessage = (error, dev = false) => {
   return error + ''
 }
 
+const findValueByKey = (obj, targetKey) => {
+  if (isPlainObject(obj)) {
+    if (obj.hasOwnProperty(targetKey)) {
+      return obj
+    }
+    for (let key in obj) {
+      let value = obj[key]
+      let result = findValueByKey(value, targetKey)
+      if (result !== undefined) {
+        return value
+      }
+    }
+  } else if (Array.isArray(obj)) {
+    let results = []
+    let list = obj
+    for (let i = 0; i < list.length; i++) {
+      let value = list[i]
+      let result = findValueByKey(value, targetKey)
+      if (result !== undefined) {
+        results.push(result)
+      }
+    }
+    if (results.length) return results
+  }
+}
+
 module.exports = {
+  findValueByKey,
   getMessage,
   entries,
   fromEntries,

@@ -1,5 +1,3 @@
-const { createContext } = require('../util')
-
 module.exports = (ctx, next) => {
   let handleFilter = params => {
     if (typeof ctx.createFunction !== 'function') {
@@ -7,6 +5,8 @@ module.exports = (ctx, next) => {
     }
 
     let result = ctx.result
+
+    if (result == null) return
 
     // if params.if is boolean, it will work like @include
     if (typeof params.if === 'boolean') {

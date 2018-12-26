@@ -1,5 +1,6 @@
 const compose = require('koa-compose')
 const fetch = require('isomorphic-fetch')
+const isPlainObject = require('is-plain-object')
 
 const { graphql } = require('./graphql-anywhere')
 const gql = require('./graphql-tag')
@@ -28,107 +29,113 @@ const atPostAll = require('./middlewares/atPostAll')
 const atExtend = require('./middlewares/atExtend')
 const atAppend = require('./middlewares/atAppend')
 const atPrepend = require('./middlewares/atPrepend')
+const atFind = require('./middlewares/atFind')
 
 const builtInMiddlewares = [
-	handleErrors,
-	handleLogs,
-	resolveDynamicArgs,
-	createFunction,
-	handleDirectives,
-	handleLogFetch,
-	handleFetchTimeout,
+  handleErrors,
+  handleLogs,
+  resolveDynamicArgs,
+  createFunction,
+  handleDirectives,
+  handleLogFetch,
+  handleFetchTimeout,
 
-	atSkip,
-	atInclude,
-	atCreate,
-	atVariable,
-	atFilter,
-	atMap,
-	atFetch,
-	atGet,
-	atPost,
-	atGetAll,
-	atPostAll,
-	atExtend,
-	atAppend,
-	atPrepend
+  atSkip,
+  atInclude,
+  atCreate,
+  atVariable,
+  atFilter,
+  atMap,
+  atFetch,
+  atGet,
+  atPost,
+  atGetAll,
+  atPostAll,
+  atExtend,
+  atAppend,
+	atPrepend,
+	atFind
 ]
 
 const defaultConfig = {
-	variableTimeout: 3000,
-	fetchTimeout: 3000
+  variableTimeout: 3000,
+  fetchTimeout: 3000
 }
 
 const createLoader = config => {
-	config = { ...defaultConfig, ...config }
+  config = { ...defaultConfig, ...config }
 
-	let middlewares = [...builtInMiddlewares]
-	let doResolve = null
-	let resolve = context => {
-		if (!doResolve) {
-			doResolve = compose(middlewares)
-		}
-		return doResolve(context)
-	}
+  let middlewares = [...builtInMiddlewares]
+  let doResolve = null
+  let resolve = context => {
+    if (!doResolve) {
+      doResolve = compose(middlewares)
+    }
+    return doResolve(context)
+  }
 
-	let resolver = async (fieldName, rootValue, args, context, info) => {
-		let result = rootValue ? rootValue[fieldName] : undefined
+  let resolver = async (fieldName, rootValue, args, context, info) => {
+    let result = null
 
-		if (result == null && !info.isLeaf) {
-			result = {}
-		}
+    if (rootValue) {
+      result = rootValue[fieldName]
+    }
 
-		context = {
-			...config,
-			...context,
-			fieldName,
-			rootValue,
-			result,
-			args,
-			info
-		}
+    if (result == null && !info.isLeaf) {
+      result = {}
+    }
 
-		try {
-			await resolve(context)
-			return context.result
-		} catch (error) {
-			context.errors.push({
-				field: fieldName,
-				message: getMessage(error, context.dev)
-			})
-		}
-	}
+    context = {
+      ...config,
+      ...context,
+      fieldName,
+      rootValue,
+      result,
+      args,
+      info
+    }
 
-	let load = async (query, variables, context, rootValue) => {
-		let errors = []
-		let logs = []
+    try {
+      await resolve(context)
+      return context.result
+    } catch (error) {
+      context.errors.push({
+        field: fieldName,
+        message: getMessage(error, context.dev)
+      })
+    }
+  }
 
-		context = context || {}
-		let variableTimeout = context.variableTimeout || config.variableTimeout
-		variables = createVariables(variables, variableTimeout)
+  let load = async (query, variables, context, rootValue) => {
+    let errors = []
+    let logs = []
 
-		context = {
-			fetch,
-			...context,
-			errors,
-			logs,
-			variables
-		}
+    context = context || {}
+    let variableTimeout = context.variableTimeout || config.variableTimeout
+    variables = createVariables(variables, variableTimeout)
 
-		query = typeof query === 'string' ? gql(query) : query
+    context = {
+      fetch,
+      ...context,
+      errors,
+      logs,
+      variables
+    }
 
-		let data = await graphql(resolver, query, rootValue, context, variables)
-		return { errors, logs, data }
-	}
+    query = typeof query === 'string' ? gql(query) : query
 
-	let use = (...customMiddlewares) => {
-		middlewares.push(...customMiddlewares)
-	}
+    let data = await graphql(resolver, query, rootValue, context, variables)
+    return { errors, logs, data }
+  }
 
-	return {
-		load,
-		use
-	}
+  let use = (...customMiddlewares) => {
+    middlewares.push(...customMiddlewares)
+  }
+
+  return {
+    load,
+    use
+  }
 }
 
 module.exports = createLoader

@@ -1,5 +1,3 @@
-const { createContext } = require('../util')
-
 const atMap = (ctx, next) => {
   ctx.directive('map', createMap(ctx))
   return next()
@@ -11,6 +9,8 @@ const createMap = ctx => async params => {
   }
 
   let result = ctx.result
+
+  if (result == null) return
 
   let { to: code, ...rest } = params
 
