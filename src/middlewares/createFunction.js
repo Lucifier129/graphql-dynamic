@@ -1,24 +1,36 @@
+let createFunction
 module.exports = (ctx, next) => {
-	ctx.createFunction = (code, ...args) => {
-		if (!ctx.vm) {
-			throw new Error(`Missing ctx.vm for createFunction`)
-		}
+  ctx.createFunction = (code, ...args) => {
+    if (!ctx.vm) {
+      throw new Error(`Missing ctx.vm for createFunction`)
+    }
 
-		if (typeof ctx.vm.createContext !== 'function') {
-			throw new Error(`ctx.vm.createContext is not a function`)
-		}
+    if (typeof ctx.vm.createContext !== 'function') {
+      throw new Error(`ctx.vm.createContext is not a function`)
+    }
 
-		if (typeof ctx.vm.runInContext !== 'function') {
-			throw new Error(`ctx.vm.runInContext is not a function`)
-		}
+    if (typeof ctx.vm.runInContext !== 'function') {
+      throw new Error(`ctx.vm.runInContext is not a function`)
+    }
 
-		let { vm } = ctx
-		let sandbox = vm.createContext({ f: null })
-		vm.runInContext(
-			`f = function (${args.join(', ')}) { with(this) { return (${code}) } }`,
-			sandbox
-		)
-		return (context, ...args) => sandbox.f.call(context, ...args)
-	}
-	return next()
+    /**
+     * use sanbox to improve security
+     * use 'new Function' to improve performance
+     */
+    if (!createFunction) {
+      let { vm } = ctx
+      let sandbox = vm.createContext({ f: null })
+      vm.runInContext(
+        `f = (code, args) => {
+					return new Function(...args, \`with(this) { return \${code} }\`)
+				}`,
+        sandbox
+      )
+      createFunction = sandbox.f
+    }
+
+    let f = createFunction(code, args)
+    return (context, ...args) => f.apply(context, args)
+  }
+  return next()
 }

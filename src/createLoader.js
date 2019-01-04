@@ -96,7 +96,9 @@ const createLoader = config => {
     }
 
     try {
-      await resolve(context)
+      if (info.directives) {
+        await resolve(context)
+      }
       return context.result
     } catch (error) {
       context.errors.push({

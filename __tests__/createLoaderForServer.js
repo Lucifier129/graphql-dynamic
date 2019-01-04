@@ -427,35 +427,6 @@ describe('createLoaderForServer', () => {
       expect(result.data.a.options.headers['cookie']).toBe('a=1&b=2')
     })
 
-    test('use fetch in @map', async () => {
-      let query = gql`
-        {
-          a
-            @create(value: 1)
-            @map(
-              to: "fetch({ url, options })"
-              url: "http://localhost:2333/fetch"
-              options: {
-                method: "GET"
-                headers: [
-                  ["Content-Type", "application/json"]
-                  ["Cookie", "a=1&b=2"]
-                ]
-              }
-            )
-        }
-      `
-      let result = await loader.load(query)
-      expect(result.errors).toEqual([])
-      // expect(result.data).toEqual(null)
-      expect(result.data.a.url).toEqual('/fetch')
-      expect(result.data.a.options.method).toEqual('GET')
-      expect(result.data.a.options.headers['content-type']).toBe(
-        'application/json'
-      )
-      expect(result.data.a.options.headers['cookie']).toBe('a=1&b=2')
-    })
-
     test('set responseType to text', async () => {
       let query = gql`
         {
@@ -579,54 +550,11 @@ describe('createLoaderForServer', () => {
       expect(result.data.a.options.headers['cookie']).toBe('a=1&b=2')
     })
 
-    test('use get in @map', async () => {
-      let query = gql`
-        {
-          a
-            @create(value: 1)
-            @map(
-              to: "get({ url, query, options })"
-              url: "http://localhost:2333/get"
-              query: { a: 1, b: 2 }
-              options: { headers: [["Cookie", "a=1&b=2"]] }
-            )
-        }
-      `
-      let result = await loader.load(query)
-      expect(result.errors).toEqual([])
-      expect(result.data.a.url).toEqual('/get?a=1&b=2')
-      expect(result.data.a.options.method).toEqual('GET')
-      expect(result.data.a.options.headers['cookie']).toBe('a=1&b=2')
-    })
-
     test('getAll data', async () => {
       let query = gql`
         {
           a
             @getAll(
-              url: "http://localhost:2333/get"
-              querys: [{ a: 1, b: 2 }, { a: 2, b: 3 }]
-              options: { headers: [["Cookie", "a=1&b=2"]] }
-            )
-        }
-      `
-      let result = await loader.load(query)
-      expect(result.errors).toEqual([])
-      expect(Array.isArray(result.data.a)).toBe(true)
-      result.data.a.forEach((data, i) => {
-        expect(data.url).toEqual(`/get?a=${i + 1}&b=${i + 2}`)
-        expect(data.options.method).toEqual('GET')
-        expect(data.options.headers['cookie']).toBe('a=1&b=2')
-      })
-    })
-
-    test('use getAll in @map', async () => {
-      let query = gql`
-        {
-          a
-            @create(value: 1)
-            @map(
-              to: "getAll({ url, querys, options })"
               url: "http://localhost:2333/get"
               querys: [{ a: 1, b: 2 }, { a: 2, b: 3 }]
               options: { headers: [["Cookie", "a=1&b=2"]] }
@@ -700,58 +628,11 @@ describe('createLoaderForServer', () => {
       expect(result.data.a.options.body).toEqual(JSON.stringify({ a: 1, b: 2 }))
     })
 
-    test('use post in @map', async () => {
-      let query = gql`
-        {
-          a
-            @create(value: 1)
-            @map(
-              to: "post({ url, body })"
-              url: "http://localhost:2333/post"
-              body: { a: 1, b: 2 }
-            )
-        }
-      `
-      let result = await loader.load(query)
-      expect(result.errors).toEqual([])
-      expect(result.data.a.url).toEqual('/post')
-      expect(result.data.a.options.method).toEqual('POST')
-      expect(result.data.a.options.headers['content-type']).toBe(
-        'application/json'
-      )
-      expect(result.data.a.options.body).toEqual(JSON.stringify({ a: 1, b: 2 }))
-    })
-
     test('postAll data', async () => {
       let query = gql`
         {
           a
             @postAll(
-              url: "http://localhost:2333/post"
-              bodys: [{ a: 1, b: 2 }, { a: 2, b: 3 }]
-            )
-        }
-      `
-      let result = await loader.load(query)
-      expect(result.errors).toEqual([])
-      expect(Array.isArray(result.data.a)).toBe(true)
-      result.data.a.forEach((data, i) => {
-        expect(data.url).toEqual('/post')
-        expect(data.options.method).toEqual('POST')
-        expect(data.options.headers['content-type']).toBe('application/json')
-        expect(data.options.body).toEqual(
-          JSON.stringify({ a: i + 1, b: i + 2 })
-        )
-      })
-    })
-
-    test('use postAll in @map', async () => {
-      let query = gql`
-        {
-          a
-            @create(value: 1)
-            @map(
-              to: "postAll({ url, bodys })"
               url: "http://localhost:2333/post"
               bodys: [{ a: 1, b: 2 }, { a: 2, b: 3 }]
             )
