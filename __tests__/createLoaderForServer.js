@@ -216,6 +216,22 @@ describe('createLoaderForServer', () => {
       expect(result.data).toEqual({ a: [{ b: 3, c: 0 }] })
     })
 
+    test('transform value in nest array field', async () => {
+      let query = gql`
+        {
+          a
+            @create(value: [[{ b: 1, c: 2 }]])
+            @map(to: "{ b: c + 1, c: b - 1 }") {
+            b
+            c
+          }
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({ a: [[{ b: 3, c: 0 }]] })
+    })
+
     test('merge context into @map', async () => {
       let query = gql`
         {
@@ -241,36 +257,13 @@ describe('createLoaderForServer', () => {
         {
           a @create(value: 1) @map(to: "$value")
           b @create(value: 2) @map(to: "$index")
-          c
-            @create(value: [{ d: 1 }, { d: 2 }])
-            @map(to: "{ d: d * $index + $list.length } ")
-          f @create(value: { g: 1, h: 2 }) {
-            g @map(to: "$parent.g + $parent.h")
-            h @map(to: "$parent.g - $parent.h")
-          }
-          i @create(value: [{ j: 1 }, { j: 2 }]) {
-            j @map(to: "$parent")
-          }
         }
       `
       let result = await loader.load(query)
       expect(result.errors).toEqual([])
       expect(result.data).toEqual({
         a: 1,
-        b: 0,
-        c: [
-          {
-            d: 2
-          },
-          {
-            d: 4
-          }
-        ],
-        f: {
-          g: 3,
-          h: -1
-        },
-        i: [{ j: { j: 1 } }, { j: { j: 2 } }]
+        b: 0
       })
     })
 
@@ -335,6 +328,34 @@ describe('createLoaderForServer', () => {
       })
     })
 
+    test('filter item in array field', async () => {
+      let query = gql`
+      {
+        a @create(value: [{ b: 1}, { b: 2}, { b: 3 }])
+          @filter(if: "b > 1")
+      }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({
+        a: [{ b: 2}, { b: 3}]
+      })
+    })
+
+    test('filter item in nest array field', async () => {
+      let query = gql`
+      {
+        a @create(value: [[{ b: 1}, { b: 2}, { b: 3 }]])
+          @filter(if: "b > 1")
+      }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({
+        a: [[{ b: 2}, { b: 3}]]
+      })
+    })
+
     test('merge context into @filter', async () => {
       let query = gql`
         {
@@ -358,26 +379,12 @@ describe('createLoaderForServer', () => {
         {
           a @create(value: 1) @filter(if: "$value === 1")
           b @create(value: 2) @filter(if: "$index !== 0")
-          c @create(value: [{ d: 1 }, { d: 2 }]) @filter(if: "$list.length")
-          f @create(value: [{ g: 1, h: 2 }, { g: 0, h: 3 }]) {
-            g
-            h @filter(if: "$parent.g > 0")
-          }
         }
       `
       let result = await loader.load(query)
       expect(result.errors).toEqual([])
       expect(result.data).toEqual({
-        a: 1,
-        c: [
-          {
-            d: 1
-          },
-          {
-            d: 2
-          }
-        ],
-        f: [{ g: 1, h: 2 }, { g: 0 }]
+        a: 1
       })
     })
   })
@@ -853,6 +860,48 @@ describe('createLoaderForServer', () => {
         c: [1, 2, 0],
         d: [{ value: 1 }, { value: 0 }],
         e: [3, 4, 5, 0, 1, 2]
+      })
+    })
+  })
+
+  describe('@find', () => {
+    test('find value from object', async () => {
+      let query = gql`
+        {
+          a @create(value: { b: { c: { d: 1 } } }) @find(key: "d")
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({
+        a: {
+          d: 1
+        }
+      })
+    })
+
+    test('find value from list', async () => {
+      let query = gql`
+        {
+          a
+            @create(value: { b: { c: [{ d: 1 }, { d: 2 }, { d: 3 }] } })
+            @find(key: "d")
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({
+        a: [
+          {
+            d: 1
+          },
+          {
+            d: 2
+          },
+          {
+            d: 3
+          }
+        ]
       })
     })
   })

@@ -22,27 +22,26 @@ const createMap = ctx => async params => {
   }
 
   let isArray = Array.isArray(result)
-  let map = ctx.createFunction(code, '$value', '$index', '$list', '$parent')
+  let map = ctx.createFunction(code, '$value', '$index')
 
   result = isArray ? result : [result]
 
-  result = result.map((item, index, list) => {
+  let mapItem = (item, index) => {
+    if (item == null) return item
+    if (Array.isArray(item)) return item.map(mapItem)
+    
     let context = {
-      fetch: ctx.fetch,
-      get: ctx.get,
-      post: ctx.post,
-      getAll: ctx.getAll,
-      postAll: ctx.postAll,
       ...ctx.rootValue,
       [ctx.fieldName]: item,
       [ctx.info.resultKey]: item,
       ...item,
       ...rest
     }
-    return map(context, item, index, list, ctx.rootValue)
-  })
+    return map.call(context, item, index)
+  }
 
-  result = await Promise.all(result)
+  result = result.map(mapItem)
+
   ctx.result = isArray ? result : result[0]
 }
 

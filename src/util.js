@@ -83,7 +83,7 @@ const findValueByKey = (obj, targetKey) => {
       let value = obj[key]
       let result = findValueByKey(value, targetKey)
       if (result !== undefined) {
-        return value
+        return result
       }
     }
   } else if (Array.isArray(obj)) {

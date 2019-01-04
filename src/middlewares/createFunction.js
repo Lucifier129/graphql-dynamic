@@ -29,8 +29,7 @@ module.exports = (ctx, next) => {
       createFunction = sandbox.f
     }
 
-    let f = createFunction(code, args)
-    return (context, ...args) => f.apply(context, args)
+    return createFunction(code, args)
   }
   return next()
 }

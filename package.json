@@ -1,6 +1,6 @@
 {
   "name": "graphql-dynamic",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "dynamic, schema-less, directive-driven Graphql",
   "main": "src/createLoaderForServer",
   "browser": "src/createLoaderForBrowser",

@@ -52,7 +52,7 @@ const resolveArgs = (args, name, ctx) => {
     ...rest
   }
 
-  return { ...rest, ...f(context, ctx.result) }
+  return { ...rest, ...f.call(context, ctx.result) }
 }
 
 module.exports = handleDirectives

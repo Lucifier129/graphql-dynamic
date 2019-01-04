@@ -1,6 +1,6 @@
 # graphql-dynamic
 
-dynamic, schema-less, directive-driven Graphql
+dynamic, schema-less, directive-driven GraphQL
 
 # Table of Contents 👇
 
@@ -32,15 +32,22 @@ const result = await loader.load(query) // output: { errors: [], infos: [], data
 - 指令按出现顺序执行
 - 每个指令都有一个特殊参数 `use`，用于动态计算指令参数。
 
+```graphql
+{
+  # @create 的最终参数来自 use 返回的结果，use 里可以通过 b 访问到其它参数
+  a @create(b: 1, use: "{ value: b }")
+}
+```
+
 ### fetch|get|post 指令里的 url 参数
 
 ```graphql
 {
-	testUrlString @post(url: "http://example.com/api/name?a=1&b=2")
-	testUrlObject
-		@post(
-			url: { host: "example.com", pathanme: "/api/name", query: { a: 1, b: 2 } }
-		)
+  testUrlString @post(url: "http://example.com/api/name?a=1&b=2")
+  testUrlObject
+    @post(
+      url: { host: "example.com", pathanme: "/api/name", query: { a: 1, b: 2 } }
+    )
 }
 ```
 
@@ -52,15 +59,15 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 
 ```graphql
 {
-	test
-		@post(
-			options: {
-				headers: [
-					["Content-Type", "application/json"]
-					["Accept", "application/json"]
-				]
-			}
-		)
+  test
+    @post(
+      options: {
+        headers: [
+          ["Content-Type", "application/json"]
+          ["Accept", "application/json"]
+        ]
+      }
+    )
 }
 ```
 
@@ -76,19 +83,19 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 
 ```graphql
 {
-	test
-		@post(
-			url: "/my/api"
-			data: { a: 1, b: 2 }
-			options: {
-				headers: [
-					["Content-Type", "application/json"]
-					["Accept", "application/json"]
-				]
-			}
-			bodyType: "json"
-			responseType: "json"
-		)
+  test
+    @post(
+      url: "/my/api"
+      data: { a: 1, b: 2 }
+      options: {
+        headers: [
+          ["Content-Type", "application/json"]
+          ["Accept", "application/json"]
+        ]
+      }
+      bodyType: "json"
+      responseType: "json"
+    )
 }
 ```
 
@@ -103,19 +110,19 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 
 ```graphql
 {
-	test
-		@get(
-			url: "/my/api"
-			query: { a: 1, b: 2 }
-			options: {
-				headers: [
-					["Content-Type", "application/json"]
-					["Accept", "application/json"]
-				]
-			}
-			bodyType: "json"
-			responseType: "json"
-		)
+  test
+    @get(
+      url: "/my/api"
+      query: { a: 1, b: 2 }
+      options: {
+        headers: [
+          ["Content-Type", "application/json"]
+          ["Accept", "application/json"]
+        ]
+      }
+      bodyType: "json"
+      responseType: "json"
+    )
 }
 ```
 
@@ -130,33 +137,33 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 
 ```graphql
 {
-	test
-		@fetch(
-			url: "/my/api"
-			options: {
-				method: "POST"
-				body: { a: 1, b: 2 }
-				headers: [
-					["Content-Type", "application/json"]
-					["Accept", "application/json"]
-				]
-			}
-			bodyType: "json"
-			responseType: "json"
-		)
+  test
+    @fetch(
+      url: "/my/api"
+      options: {
+        method: "POST"
+        body: { a: 1, b: 2 }
+        headers: [
+          ["Content-Type", "application/json"]
+          ["Accept", "application/json"]
+        ]
+      }
+      bodyType: "json"
+      responseType: "json"
+    )
 }
 ```
 
 ### @create(value)
 
-用 value 参数的值作为当前字段的值，该指令如果存在，必须是第一个
+用 value 参数的值作为当前字段的值
 
 ```graphql
 {
-	number @create(value: 1)
-	string @create(value: "1")
-	object @create(value: { a: 1, b: 2 })
-	array @create(value: [{ a: 1 }, { b: 2 }])
+  number @create(value: 1)
+  string @create(value: "1")
+  object @create(value: { a: 1, b: 2 })
+  array @create(value: [{ a: 1 }, { b: 2 }])
 }
 ```
 
@@ -173,7 +180,7 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 
 ### @variable(name)
 
-将当前字段的值定义为 graphql 变量，如果该指令存在，必须是最后一个
+将当前字段的值定义为 graphql 变量
 
 如果 name 参数没有指定，默认为当前字段的名称（fieldName）。
 
@@ -181,9 +188,9 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 
 ```graphql
 {
-	a @create(value: 1) @variable # 将 a 定义为变量
-	b @create(value: $a) @variable(name: "c") # 使用变量 a，并将 b 定义为变量，变量名为 c
-	c @create(value: $c) # 使用来自字段 b 定义的变量 c
+  a @create(value: 1) @variable # 将 a 定义为变量
+  b @create(value: $a) @variable(name: "c") # 使用变量 a，并将 b 定义为变量，变量名为 c
+  c @create(value: $c) # 使用来自字段 b 定义的变量 c
 }
 ```
 
@@ -191,19 +198,16 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 
 将当前字段的值映射成另一个，to 参数为一个 js 表达式，在表达式里可以使用 context 里的参数
 
-- 如果当前字段的值不是对象或数组，则 to 参数里可以用当前字段的名字访问它的值。
-- 如果当前字段的值是对象，则 to 参数里可以用对象里的 key 去访问对应的 value 值，通过 $value 元参数访问整个对象，通过 this 关键字访问$value + context 的 mergedObject 合并对象。
-- 如果当前字段的值是数组，则循环这个数组，按上面的规则读取值。
-- 可以用过`元参数` $value|$index|$list 分别访问整个字段值、数组索引和数组本身。
+- to 参数里可以用当前字段的名字访问它的值。
+- 如果当前字段的值是对象，则 to 参数里可以用对象里的 key 去访问对应的 value 值
+- 如果当前字段的值是数组，则循环这个数组，按上面的规则读取值
+- 如果数组的元素也是数组，则继续循环这个数组，按照上面的规则取值
 
 ```graphql
 {
-	a @create(value: 1) @map(to: "a + b", b: 1) # a 最终为 2
-	objcet @create(value: { a: 1, b: 2 }) @map(to: "{ a: a + 1, b: b + n }", n: 1) # object 最终为 { a: 2, b: 3 }
-	array @create(value: [{ a: 1 }, { a: 2 }]) @map(to: "{ a: a + 1 }") # array 最终为 [{ a: 2 }, { a: 3 }]
-	array1
-		@create(value: [{ a: 1 }, { a: 2 }])
-		@map(to: "{ value: $value， index: $index, length: $list.length  }") # 通过 $value 访问整个字段的值，通过 $index 访问数组索引（如果它原始值不是数组，$index 为 0），通过 $list 访问循环的数组（如果它的原始值不是数组，$list 为只包含该原始值的、长度为1的数组）
+  a @create(value: 1) @map(to: "a + b", b: 1) # a 最终为 2
+  objcet @create(value: { a: 1, b: 2 }) @map(to: "{ a: a + 1, b: b + n }", n: 1) # object 最终为 { a: 2, b: 3 }
+  array @create(value: [{ a: 1 }, { a: 2 }]) @map(to: "{ a: a + 1 }") # array 最终为 [{ a: 2 }, { a: 3 }]
 }
 ```
 
@@ -211,18 +215,36 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 
 过滤当前字段的值，if 参数为一个 js 表达式，在表达式里可以使用 context 里的参数
 
-- 如果当前字段的值不是对象或数组，则 if 参数里可以用当前字段的名字访问它的值。
-- 如果当前字段的值是对象，则 if 参数里可以用对象里的 key 去访问对应的 value 值，通过 $value 元参数访问整个对象，通过 this 关键字访问$value + context 的 mergedObject 合并对象。
+- if 参数里可以用当前字段的名字访问它的值。
+- 如果当前字段的值是对象，则 if 参数里可以用对象里的 key 去访问对应的 value 值
 - 如果当前字段的值是数组，则循环这个数组，按上面的规则读取值。
-- 可以用过`元参数` $value|$index|\$list 分别访问整个字段值、数组索引和数组本身。
+- 如果数组的元素也是数组，则继续循环这个数组，按照上面的规则取值
 
 ```graphql
 {
-	a @create(value: 1) @filter(if: "a > 1") # a 不会被输出
-	b @create(value: 1) @filter(if: "b === 1") # b 输出为 1
-	objcet @create(value: { a: 1, b: 2 }) @filter(if: "b <= n", n: 1) # object 最终为 { a: 1, b: 2 }
-	array @create(value: [{ a: 1 }, { a: 2 }]) @filter(to: "a < 2") # array 最终为 [{ a: 1 }]
+  a @create(value: 1) @filter(if: "a > 1") # a 不会被输出
+  b @create(value: 1) @filter(if: "b === 1") # b 输出为 1
+  objcet @create(value: { a: 1, b: 2 }) @filter(if: "b <= n", n: 2) # object 最终为 { a: 1, b: 2 }
+  array @create(value: [{ a: 1 }, { a: 2 }]) @filter(if: "a < 2") # array 最终为 [{ a: 1 }]
 }
+```
+
+### @find(key)
+
+向下遍历查找存在 key 参数指定的字段名的对象，如果存在多个这种对象，收集成数组
+
+当 key 参数不存在时，指令所在的当前字段名为查找的目标 key 值
+
+```graphql
+{
+  a @create(value: { b: { c: { d: 1 } } }) @find(key: "d")
+}
+# 输出如下
+# {
+# 	a: {
+# 		d: 1
+# 	}
+# }
 ```
 
 ### @extend(...object)
@@ -235,9 +257,9 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 
 ```graphql
 {
-	a @extend(b: 1, c: 2) # a 输出为 { b: 1, c: 2 }
-	b @create(value: { b: 0, d: 3 }) @extend(b: 1, c: 2) # b 输出为 { b: 1, c: 2, d: 3 }
-	c @create(value: [{ b: 0, d: 3 }, { b: -1, d: 4 }]) @extend(b: 1, c: 2) # c 输出为 [{ b: 1, c: 2, d: 3 }, { b: 1, c: 2, d: 4 }]
+  a @extend(b: 1, c: 2) # a 输出为 { b: 1, c: 2 }
+  b @create(value: { b: 0, d: 3 }) @extend(b: 1, c: 2) # b 输出为 { b: 1, c: 2, d: 3 }
+  c @create(value: [{ b: 0, d: 3 }, { b: -1, d: 4 }]) @extend(b: 1, c: 2) # c 输出为 [{ b: 1, c: 2, d: 3 }, { b: 1, c: 2, d: 4 }]
 }
 ```
 
@@ -247,10 +269,10 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 
 ```graphql
 {
-	a @prepend(value: 1)
-	b @prepend(value: "1")
-	c @prepend(value: [1, 2])
-	d @prepend(value: { value: 1 })
+  a @prepend(value: 1)
+  b @prepend(value: "1")
+  c @prepend(value: [1, 2])
+  d @prepend(value: { value: 1 })
 }
 
 # 输出
@@ -262,11 +284,11 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 # }
 
 {
-	a @create(value: 0) @prepend(value: 1)
-	b @create(value: "0") @prepend(value: "1")
-	c @create(value: 0) @prepend(value: [1, 2])
-	d @create(value: { value: 0 }) @prepend(value: { value: 1 })
-	e @create(value: [0, 1, 2]) @prepend(value: [3, 4, 5])
+  a @create(value: 0) @prepend(value: 1)
+  b @create(value: "0") @prepend(value: "1")
+  c @create(value: 0) @prepend(value: [1, 2])
+  d @create(value: { value: 0 }) @prepend(value: { value: 1 })
+  e @create(value: [0, 1, 2]) @prepend(value: [3, 4, 5])
 }
 
 # 输出
@@ -327,14 +349,14 @@ loader 字段拥有两个方法：
 import createLoader from 'graphql-dynamic'
 
 const loader = createLoader({
-	variableTimeout: 3000,
-	fetchTimeout: 3000
+  variableTimeout: 3000,
+  fetchTimeout: 3000
 })
 
 loader.use(async (ctx, next) => {
-	let start = Date.now()
-	await next()
-	console.log('time', Date.now() - start)
+  let start = Date.now()
+  await next()
+  console.log('time', Date.now() - start)
 })
 
 const result = await loader.load(`{ test @create(value: 1) }`)
@@ -350,17 +372,17 @@ const moment = require('moment')
 
 // @date(format, i18n) 将字段值通过 moment 转换成日期
 loader.use((ctx, next) => {
-	// 注册 @date 指令
-	ctx.directive('date', params => {
-		if (!/number|string/.test(typeof ctx.result)) {
-			return
-		}
-		let { format = 'YYYY/MM/DD', i18n = 'zh-cn' } = params
-		let local = moment(ctx.result)
-		if (i18n) local.locale(i18n)
-		ctx.result = local.format(format)
-	})
-	return next()
+  // 注册 @date 指令
+  ctx.directive('date', params => {
+    if (!/number|string/.test(typeof ctx.result)) {
+      return
+    }
+    let { format = 'YYYY/MM/DD', i18n = 'zh-cn' } = params
+    let local = moment(ctx.result)
+    if (i18n) local.locale(i18n)
+    ctx.result = local.format(format)
+  })
+  return next()
 })
 ```
 
@@ -378,14 +400,14 @@ const express = require('express')
 const app = express()
 
 const playground = {
-	'general.betaUpdates': false,
-	'editor.cursorShape': 'line', // possible values: 'line', 'block', 'underline'
-	'editor.fontSize': 14,
-	'editor.fontFamily': `'Source Code Pro', 'Consolas', 'Inconsolata', 'Droid Sans Mono', 'Monaco', monospace`,
-	'editor.theme': 'light', // possible values: 'dark', 'light'
-	'editor.reuseHeaders': true, // new tab reuses headers from last tab
-	'request.credentials': 'omit', // possible values: 'omit', 'include', 'same-origin'
-	'tracing.hideTracingResponse': true
+  'general.betaUpdates': false,
+  'editor.cursorShape': 'line', // possible values: 'line', 'block', 'underline'
+  'editor.fontSize': 14,
+  'editor.fontFamily': `'Source Code Pro', 'Consolas', 'Inconsolata', 'Droid Sans Mono', 'Monaco', monospace`,
+  'editor.theme': 'light', // possible values: 'dark', 'light'
+  'editor.reuseHeaders': true, // new tab reuses headers from last tab
+  'request.credentials': 'omit', // possible values: 'omit', 'include', 'same-origin'
+  'tracing.hideTracingResponse': true
 }
 
 const endpoint = '/graphql'

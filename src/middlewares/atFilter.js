@@ -1,3 +1,6 @@
+const REMOVE = {}
+const shouldRemove = item => item !== REMOVE
+
 module.exports = (ctx, next) => {
   let handleFilter = params => {
     if (typeof ctx.createFunction !== 'function') {
@@ -27,11 +30,14 @@ module.exports = (ctx, next) => {
 
     let isArray = Array.isArray(result)
     let { if: code, ...rest } = params
-    let filter = ctx.createFunction(code, '$value', '$index', '$list', '$parent')
+    let filter = ctx.createFunction(code, '$value', '$index')
 
     result = isArray ? result : [result]
 
-    result = result.filter((item, index, list) => {
+    let filterItem = (item, index) => {
+      if (item == null) return REMOVE
+      if (Array.isArray(item)) return item.map(filterItem).filter(shouldRemove)
+
       let context = {
         ...ctx.rootValue,
         [ctx.fieldName]: item,
@@ -39,8 +45,10 @@ module.exports = (ctx, next) => {
         ...item,
         ...rest
       }
-      return filter(context, item, index, list, ctx.rootValue)
-    })
+      return filter.call(context, item, index) ? item : REMOVE
+    }
+
+    result = result.map(filterItem).filter(shouldRemove)
 
     ctx.result = isArray ? result : result[0]
   }
