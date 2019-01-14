@@ -99,12 +99,22 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 }
 ```
 
+### @postAll(url, bodys, options, bodyType, responseType)
+
+发送一系列 post 请求，它内部会以 `Promise.all` 的形式，等待所有接口响应完成。
+
+- url，可以是 url string，也可以是 [url object](https://nodejs.org/api/url.html#url_url_strings_and_url_objects)
+- bodys，数组类型，其中的每一个元素都将作为 post 请求发送的 body 数据
+- options, 跟 fetch(url, options) 的 [options](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch#Parameters) 结构一致，（除了 headers 要求特殊形式，见“fetch|get|post 指令里的 headers 参数”一节）
+- bodyType，发送 post 请求时 body 的编码类型，默认为 json，可以设置为 text 文本格式。
+- responseType，获取 post 请求的响应数据的编码类型，默认为 json，可以设置为 text 文本格式。
+
 ### @get(url, query, options, responseType)
 
 发送 get 请求
 
 - url，可以是 url string，也可以是 [url object](https://nodejs.org/api/url.html#url_url_strings_and_url_objects)
-- body，post 请求发送的数据
+- query，get 请求发送的数据，会作为 `querystring` 拼接在 url 的 ? 号后面
 - options, 跟 fetch(url, options) 的 [options](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch#Parameters) 结构一致，（除了 headers 要求特殊形式，见“fetch|get|post 指令里的 headers 参数”一节）
 - responseType，获取 post 请求的响应数据的编码类型，默认为 json，可以设置为 text 文本格式。
 
@@ -125,6 +135,15 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
     )
 }
 ```
+
+### @getAll(url, querys, options, responseType)
+
+发送一系列 get 请求，内部会用 `Promise.all` 等待所有接口响应完成
+
+- url，可以是 url string，也可以是 [url object](https://nodejs.org/api/url.html#url_url_strings_and_url_objects)
+- querys，数组类型，其中的每一个元素都将作为 get 请求发送的数据，会作为 `querystring` 拼接在 url 的 ? 号后面
+- options, 跟 fetch(url, options) 的 [options](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch#Parameters) 结构一致，（除了 headers 要求特殊形式，见“fetch|get|post 指令里的 headers 参数”一节）
+- responseType，获取 post 请求的响应数据的编码类型，默认为 json，可以设置为 text 文本格式。
 
 ### @fetch(url, options, bodyType, responseType)
 
