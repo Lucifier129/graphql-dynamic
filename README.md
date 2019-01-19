@@ -248,7 +248,7 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 }
 ```
 
-### @find(key)
+### @select(key)
 
 向下遍历查找存在 key 参数指定的字段名的对象，如果存在多个这种对象，收集成数组
 
@@ -256,7 +256,7 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 
 ```graphql
 {
-  a @create(value: { b: { c: { d: 1 } } }) @find(key: "d")
+  a @create(value: { b: { c: { d: 1 } } }) @select(key: "d")
 }
 # 输出如下
 # {
@@ -264,6 +264,26 @@ headers 必须是数组[[key, value]] 格式，而不是 { [key]: value }。
 # 		d: 1
 # 	}
 # }
+```
+
+### @find(if)
+
+查找当前字段的值，if 参数为一个 js 表达式，在表达式里可以使用 context 里的参数。
+
+- if 参数里可以用当前字段的名字访问它的值。
+- 如果当前字段的值是对象，则 if 参数里可以用对象里的 key 去访问对应的 value 值
+- 如果当前字段的值是数组，则循环这个数组，按上面的规则读取值。
+- 如果数组的元素也是数组，则继续循环这个数组，按照上面的规则取值
+
+和 filter 的差别是，find 指令返回的不是数组，而是第一个匹配的元素。
+
+```graphql
+{
+  a @create(value: 1) @find(if: "a > 1") # a 不会被输出
+  b @create(value: 1) @find(if: "b === 1") # b 输出为 1
+  objcet @create(value: { a: 1, b: 2 }) @find(if: "b <= n", n: 2) # object 最终为 { a: 1, b: 2 }
+  array @create(value: [{ a: 1 }, { a: 2 }]) @find(if: "a < 2") # array 最终为 { a: 1 }
+}
 ```
 
 ### @extend(...object)
