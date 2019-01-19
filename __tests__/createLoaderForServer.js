@@ -864,11 +864,11 @@ describe('createLoaderForServer', () => {
     })
   })
 
-  describe('@find', () => {
+  describe('@select', () => {
     test('find value from object', async () => {
       let query = gql`
         {
-          a @create(value: { b: { c: { d: 1 } } }) @find(key: "d")
+          a @create(value: { b: { c: { d: 1 } } }) @select(key: "d")
         }
       `
       let result = await loader.load(query)
@@ -885,7 +885,7 @@ describe('createLoaderForServer', () => {
         {
           a
             @create(value: { b: { c: [{ d: 1 }, { d: 2 }, { d: 3 }] } })
-            @find(key: "d")
+            @select(key: "d")
         }
       `
       let result = await loader.load(query)

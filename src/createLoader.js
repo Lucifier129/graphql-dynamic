@@ -29,7 +29,7 @@ const atPostAll = require('./middlewares/atPostAll')
 const atExtend = require('./middlewares/atExtend')
 const atAppend = require('./middlewares/atAppend')
 const atPrepend = require('./middlewares/atPrepend')
-const atFind = require('./middlewares/atFind')
+const atSelect = require('./middlewares/atSelect')
 
 const builtInMiddlewares = [
   handleErrors,
@@ -54,7 +54,7 @@ const builtInMiddlewares = [
   atExtend,
   atAppend,
 	atPrepend,
-	atFind
+	atSelect
 ]
 
 const defaultConfig = {
