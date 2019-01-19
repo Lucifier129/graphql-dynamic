@@ -3,7 +3,7 @@ const atMap = (ctx, next) => {
   return next()
 }
 
-const createMap = ctx => async params => {
+const createMap = ctx => params => {
   if (typeof ctx.createFunction !== 'function') {
     throw new Error(`ctx.createFunction is not a function in @map`)
   }
@@ -21,15 +21,11 @@ const createMap = ctx => async params => {
     return
   }
 
-  let isArray = Array.isArray(result)
   let map = ctx.createFunction(code, '$value', '$index')
-
-  result = isArray ? result : [result]
-
   let mapItem = (item, index) => {
     if (item == null) return item
     if (Array.isArray(item)) return item.map(mapItem)
-    
+
     let context = {
       ...ctx.rootValue,
       [ctx.fieldName]: item,
@@ -39,9 +35,10 @@ const createMap = ctx => async params => {
     }
     return map.call(context, item, index)
   }
+  let isArray = Array.isArray(result)
 
+  result = isArray ? result : [result]
   result = result.map(mapItem)
-
   ctx.result = isArray ? result : result[0]
 }
 

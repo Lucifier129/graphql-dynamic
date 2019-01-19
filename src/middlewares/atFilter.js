@@ -28,12 +28,8 @@ module.exports = (ctx, next) => {
       return
     }
 
-    let isArray = Array.isArray(result)
     let { if: code, ...rest } = params
-    let filter = ctx.createFunction(code, '$value', '$index')
-
-    result = isArray ? result : [result]
-
+    let predicate = ctx.createFunction(code, '$value', '$index')
     let filterItem = (item, index) => {
       if (item == null) return REMOVE
       if (Array.isArray(item)) return item.map(filterItem).filter(shouldRemove)
@@ -45,11 +41,12 @@ module.exports = (ctx, next) => {
         ...item,
         ...rest
       }
-      return filter.call(context, item, index) ? item : REMOVE
+      return predicate.call(context, item, index) ? item : REMOVE
     }
+    let isArray = Array.isArray(result)
 
+    result = isArray ? result : [result]
     result = result.map(filterItem).filter(shouldRemove)
-
     ctx.result = isArray ? result : result[0]
   }
 

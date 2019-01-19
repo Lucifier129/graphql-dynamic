@@ -330,29 +330,29 @@ describe('createLoaderForServer', () => {
 
     test('filter item in array field', async () => {
       let query = gql`
-      {
-        a @create(value: [{ b: 1}, { b: 2}, { b: 3 }])
-          @filter(if: "b > 1")
-      }
+        {
+          a @create(value: [{ b: 1 }, { b: 2 }, { b: 3 }]) @filter(if: "b > 1")
+        }
       `
       let result = await loader.load(query)
       expect(result.errors).toEqual([])
       expect(result.data).toEqual({
-        a: [{ b: 2}, { b: 3}]
+        a: [{ b: 2 }, { b: 3 }]
       })
     })
 
     test('filter item in nest array field', async () => {
       let query = gql`
-      {
-        a @create(value: [[{ b: 1}, { b: 2}, { b: 3 }]])
-          @filter(if: "b > 1")
-      }
+        {
+          a
+            @create(value: [[{ b: 1 }, { b: 2 }, { b: 3 }]])
+            @filter(if: "b > 1")
+        }
       `
       let result = await loader.load(query)
       expect(result.errors).toEqual([])
       expect(result.data).toEqual({
-        a: [[{ b: 2}, { b: 3}]]
+        a: [[{ b: 2 }, { b: 3 }]]
       })
     })
 
@@ -865,7 +865,7 @@ describe('createLoaderForServer', () => {
   })
 
   describe('@select', () => {
-    test('find value from object', async () => {
+    test('select value from object', async () => {
       let query = gql`
         {
           a @create(value: { b: { c: { d: 1 } } }) @select(key: "d")
@@ -880,7 +880,7 @@ describe('createLoaderForServer', () => {
       })
     })
 
-    test('find value from list', async () => {
+    test('select value from list', async () => {
       let query = gql`
         {
           a
@@ -902,6 +902,47 @@ describe('createLoaderForServer', () => {
             d: 3
           }
         ]
+      })
+    })
+  })
+
+  describe('@find', () => {
+    test('find value in object', async () => {
+      let query = gql`
+        {
+          a @create(value: { b: 1, c: 2, d: 3 }) @find(if: "b === 1")
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({
+        a: {
+          b: 1,
+          c: 2,
+          d: 3
+        }
+      })
+
+      query = gql`
+        {
+          a @create(value: { b: 1, c: 2, d: 3 }) @find(if: "b !== 1")
+        }
+      `
+      result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({})
+    })
+
+    test('find value in array', async () => {
+      let query = gql`
+        {
+          a @create(value: [1, 2, 3, 4, 5]) @find(if: "a > 2")
+        }
+      `
+      let result = await loader.load(query)
+      expect(result.errors).toEqual([])
+      expect(result.data).toEqual({
+        a: 3
       })
     })
   })
