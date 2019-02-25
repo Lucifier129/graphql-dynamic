@@ -3,9 +3,7 @@ const { Router } = require('express')
 const bodyParser = require('body-parser')
 const createLoader = require('./src/createLoaderForServer')
 const { renderPlaygroundPage } = require('graphql-playground-html')
-const {
-  version
-} = require('graphql-playground-middleware-express/package.json')
+const { version } = require('graphql-playground-react/package.json')
 
 const defaultConfig = {
   logs: true,

@@ -35,7 +35,7 @@
     "express": "^4.16.4",
     "graphql": "^14.0.2",
     "graphql-playground-html": "^1.6.6",
-    "graphql-playground-middleware-express": "^1.7.8",
+    "graphql-playground-react": "^1.7.20",
     "is-plain-object": "^2.0.4",
     "isomorphic-fetch": "^2.2.1",
     "koa-compose": "^4.1.0",
